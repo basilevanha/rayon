@@ -48,6 +48,7 @@ supabase/
   migrations/        # seule façon de modifier le schéma
   tests/             # pgTAP
 docs/SPEC.md
+docs/ROADMAP.md     # état d'avancement par identifiant
 ```
 
 ## Règles
@@ -87,4 +88,4 @@ docs/SPEC.md
 
 ## Fin de tâche
 
-Avant de déclarer une tâche terminée : `pnpm typecheck && pnpm lint && pnpm test` passent, et le résumé liste les identifiants couverts et ceux qui restent ouverts.
+Avant de déclarer une tâche terminée : `pnpm typecheck && pnpm lint && pnpm test` passent, et le résumé liste les identifiants couverts et ceux qui restent ouverts. Mets à jour `docs/ROADMAP.md` : état de chaque identifiant touché, synthèse chiffrée, tableau des lots et points ouverts.
