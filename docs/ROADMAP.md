@@ -2,15 +2,15 @@
 
 État d'avancement par rapport à `docs/SPEC.md`. Mis à jour à la fin de chaque lot.
 
-Dernière mise à jour : 4 octobre 2026, lot 5a (données des articles) après SPEC 3.1.
+Dernière mise à jour : 4 octobre 2026, lot 5b (logique pure : tri, recherche, suggestion de rayon).
 
 ## Synthèse
 
 |            | Exigences | Part |
 | ---------- | --------: | ---: |
 | ✅ Fait    |        28 | 16 % |
-| 🟡 Partiel |        43 | 25 % |
-| ⬜ À faire |       102 | 59 % |
+| 🟡 Partiel |        51 | 29 % |
+| ⬜ À faire |        94 | 54 % |
 | **Total**  |   **173** |      |
 
 Une exigence est « faite » quand elle est implémentée, testée et vérifiée dans l'app. « Partiel » signifie qu'une partie est en place, et la note précise ce qui manque.
@@ -73,12 +73,12 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 
 ### Articles, recherche, préparation (§5 à 7)
 
-| Id                      | État | Note                                                                                                                                                                                                        |
-| ----------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ART-01 à ART-08         | 🟡   | Table `articles`, `creer_article` (fusion ART-04), suppression douce avec date serveur et restauration refusée en cas de doublon (ART-08), quantité vide au catalogue (ART-02). Reste : interface (lot 5c). |
-| REC-01, REC-03 à REC-09 | ⬜   | Lot 5.                                                                                                                                                                                                      |
-| REC-02                  | ✅   | `src/lib/normalize.ts` et `normaliser_nom` en SQL, mêmes cas (`normalize.cases.ts`, parité vérifiée par `normalize.sql.test.ts`).                                                                           |
-| PRE-01 à PRE-12         | ⬜   | Lot 5 (PRE-08 au lot 8, PRE-09 avec l'apprentissage).                                                                                                                                                       |
+| Id                      | État | Note                                                                                                                                                                                                                                                                                           |
+| ----------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ART-01 à ART-08         | 🟡   | Table `articles`, `creer_article` (fusion ART-04), suppression douce avec date serveur et restauration refusée en cas de doublon (ART-08), quantité vide au catalogue (ART-02). Suggestion de rayon (`suggestRayon`, `topRayons`) dans `src/lib/suggest-rayon.ts`. Reste : interface (lot 5c). |
+| REC-01, REC-03 à REC-09 | 🟡   | Moteur `src/lib/search.ts` testé (préfixe par mot, une faute par mot de 4 lettres ou plus, exactes d'abord, « Créer », 1 000 articles en moins de 50 ms). REC-05, REC-06, REC-08 et REC-09 n'existent qu'à l'écran. Reste : barre de recherche (lot 5c).                                       |
+| REC-02                  | ✅   | `src/lib/normalize.ts` et `normaliser_nom` en SQL, mêmes cas (`normalize.cases.ts`, parité vérifiée par `normalize.sql.test.ts`).                                                                                                                                                              |
+| PRE-01 à PRE-12         | ⬜   | Tri par rayon et « A → Z » prêts (`src/lib/sort.ts`). Reste : écran (lot 5c), PRE-08 au lot 8, PRE-09 avec l'apprentissage.                                                                                                                                                                    |
 
 ### Mode courses (§8)
 
@@ -92,9 +92,9 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 | --------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | RAY-01, RAY-02  | 🟡   | 36 rayons de l'annexe §18 en migration, lisibles par tous, non modifiables. Reste : édition par les administrateurs (ADM-03, lot 10). |
 | MAG-01 à MAG-05 | ⬜   | Lot 7.                                                                                                                                |
-| DIS-01, DIS-02  | ⬜   | Ordre des rayons d'un magasin, lot 7.                                                                                                 |
+| DIS-01, DIS-02  | ⬜   | Ordre des rayons d'un magasin, lot 7. Le tri le gère déjà (`sortByRayon`).                                                            |
 | DIS-03          | ⬜   | V2.                                                                                                                                   |
-| RNG-01, RNG-02  | ⬜   | Rangement d'un article par magasin (rayon seulement), lot 7.                                                                          |
+| RNG-01, RNG-02  | ⬜   | Rangement par magasin, lot 7. Le tri le gère déjà (`sortByRayon`).                                                                    |
 
 ### Apprentissage (§10)
 
@@ -113,10 +113,10 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 
 ### Collaboration en temps réel (§12)
 
-| Id                      | État | Note                                                                                                                                                                                                   |
-| ----------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| COL-01, COL-05 à COL-07 | ⬜   | Lots 6 et 8.                                                                                                                                                                                           |
-| COL-02 à COL-04         | 🟡   | Règles dans `src/lib/conflicts.ts` ; auteur et horodatage serveur (`horodater_article`) et `status_by` en base. Reste : `needsRemovalConfirmation` sur `statusBy` (lot 5b), alertes à l'écran (lot 8). |
+| Id                      | État | Note                                                                                                                                                               |
+| ----------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| COL-01, COL-05 à COL-07 | ⬜   | Lots 6 et 8.                                                                                                                                                       |
+| COL-02 à COL-04         | 🟡   | Règles dans `src/lib/conflicts.ts`, confirmation de retrait sur `statusBy` ; auteur, horodatage serveur et `status_by` en base. Reste : alertes à l'écran (lot 8). |
 
 ### Hors ligne (§13)
 
@@ -148,28 +148,28 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 
 ### Exigences techniques (§16)
 
-| Id              | État | Note                                                                                                                                                                           |
-| --------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| TEC-01          | 🟡   | Index unique partiel sur (list_id, nom normalisé calculé par la base), testé en base. Reste : vérification dans l'app (lot 5c).                                                |
-| TEC-02          | 🟡   | Fonction pure `sortList` (`src/lib/sort.ts`). Reste : branchement au mode préparation et au mode courses.                                                                      |
-| TEC-03          | 🟡   | `controle_inscription`, `accepter_invitation`, `creer_article`, `set_status` faites. Reste : `terminer_session`, `ranger_article`, `ordonner_rayons`, `supprimer_rayon`.       |
-| TEC-04          | ✅   | Migrations versionnées, types générés.                                                                                                                                         |
-| SEC-01          | 🟡   | RLS sur toutes les tables existantes, dont listes, rayons et articles, vérifiée par des tests (isolation entre listes, colonnes protégées). À étendre à chaque nouvelle table. |
-| SEC-02          | 🟡   | Aucune clé de service côté client. Reste : fonctions de modération.                                                                                                            |
-| SEC-03          | 🟡   | 20 invitations par jour et par liste. Reste : demandes d'accès, magasins, suggestions.                                                                                         |
-| SEC-04          | ✅   | Hook transactionnel avec verrous.                                                                                                                                              |
-| PWA-01          | ✅   | Manifest et icônes. L'icône est provisoire.                                                                                                                                    |
-| PWA-02          | ✅   | Mise en cache complète, bannière « Nouvelle version disponible ».                                                                                                              |
-| PWA-03          | ⬜   | Wake Lock, vibration, géolocalisation.                                                                                                                                         |
-| PWA-04          | 🟡   | Configuré dans le manifest, pas encore vérifié sur un appareil réel.                                                                                                           |
-| OPS-01 à OPS-04 | ⬜   | Lot 11.                                                                                                                                                                        |
-| OPS-05          | ✅   | Développement local avec Supabase CLI.                                                                                                                                         |
-| OPS-06          | ⬜   | SMTP externe.                                                                                                                                                                  |
-| QUA-01          | 🟡   | Oxlint et Oxfmt en place. Reste : CI à chaque push.                                                                                                                            |
-| QUA-02          | ✅   | Normalisation, tri, conflits et fusion des doublons testés.                                                                                                                    |
-| QUA-03          | 🟡   | Hook d'inscription, profils, listes, rayons et articles testés. Reste : magasins.                                                                                              |
-| QUA-04          | 🟡   | Config Playwright (Pixel 7) et scénario « inviter » (`e2e/lists.spec.ts`). Le reste au fil des lots.                                                                           |
-| QUA-05          | ✅   | Écran de secours avec « Recharger ».                                                                                                                                           |
+| Id              | État | Note                                                                                                                                                                                       |
+| --------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| TEC-01          | 🟡   | Index unique partiel sur (list_id, nom normalisé calculé par la base), testé en base. Reste : vérification dans l'app (lot 5c).                                                            |
+| TEC-02          | 🟡   | `sortByRayon` et `sortAlphabetically` (`src/lib/sort.ts`) selon SPEC 3.1 : ordre du magasin ou de référence, rangements, ordre alphabétique. Reste : branchement à l'écran (lots 5c et 8). |
+| TEC-03          | 🟡   | `controle_inscription`, `accepter_invitation`, `creer_article`, `set_status` faites. Reste : `terminer_session`, `ranger_article`, `ordonner_rayons`, `supprimer_rayon`.                   |
+| TEC-04          | ✅   | Migrations versionnées, types générés.                                                                                                                                                     |
+| SEC-01          | 🟡   | RLS sur toutes les tables existantes, dont listes, rayons et articles, vérifiée par des tests (isolation entre listes, colonnes protégées). À étendre à chaque nouvelle table.             |
+| SEC-02          | 🟡   | Aucune clé de service côté client. Reste : fonctions de modération.                                                                                                                        |
+| SEC-03          | 🟡   | 20 invitations par jour et par liste. Reste : demandes d'accès, magasins, suggestions.                                                                                                     |
+| SEC-04          | ✅   | Hook transactionnel avec verrous.                                                                                                                                                          |
+| PWA-01          | ✅   | Manifest et icônes. L'icône est provisoire.                                                                                                                                                |
+| PWA-02          | ✅   | Mise en cache complète, bannière « Nouvelle version disponible ».                                                                                                                          |
+| PWA-03          | ⬜   | Wake Lock, vibration, géolocalisation.                                                                                                                                                     |
+| PWA-04          | 🟡   | Configuré dans le manifest, pas encore vérifié sur un appareil réel.                                                                                                                       |
+| OPS-01 à OPS-04 | ⬜   | Lot 11.                                                                                                                                                                                    |
+| OPS-05          | ✅   | Développement local avec Supabase CLI.                                                                                                                                                     |
+| OPS-06          | ⬜   | SMTP externe.                                                                                                                                                                              |
+| QUA-01          | 🟡   | Oxlint et Oxfmt en place. Reste : CI à chaque push.                                                                                                                                        |
+| QUA-02          | ✅   | Normalisation (TS et SQL), tri, recherche, suggestion de rayon, conflits et fusion des doublons testés.                                                                                    |
+| QUA-03          | 🟡   | Hook d'inscription, profils, listes, rayons et articles testés. Reste : magasins.                                                                                                          |
+| QUA-04          | 🟡   | Config Playwright (Pixel 7) et scénario « inviter » (`e2e/lists.spec.ts`). Le reste au fil des lots.                                                                                       |
+| QUA-05          | ✅   | Écran de secours avec « Recharger ».                                                                                                                                                       |
 
 ## Points ouverts
 
@@ -177,10 +177,11 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 - **OFF-08 en ligne** : avec un jeton révoqué, l'app redirige vers `/connexion` au lieu de demander la reconnexion. À traiter au lot 6.
 - **Délai de 15 minutes** : un code consommé sans compte créé est libéré au bout de 15 minutes. Ce délai est absent du SPEC et reste à valider.
 - **Icône de l'application** : provisoire, à remplacer, puis relancer `pnpm gen:icons`.
-- **COL-04, auteur de la mise au caddie** : `articles.status_by` en base, fixé par `set_status` et par `creer_article` (un changement de statut). `needsRemovalConfirmation` est à adapter au lot 5b.
-- **SPEC 3.1, simplification des rayons** : rayons fixes gérés par les administrateurs (36 rayons, annexe §18), un rayon par article avec un rangement facultatif par magasin, l'ordre des rayons d'un magasin commun à tous, un seul mode réorganiser (préparation et courses). Parcours personnels, positions dans un rayon, sous-rayons, dictionnaire et modération partent en V2 ou en §17. `src/lib/sort.ts` (parcours, positions, sous-rayons) est à simplifier au lot 5.
+- **COL-04, membre supprimé** : si le compte qui a mis l'article au caddie a été supprimé (`status_by` vide), la confirmation est demandée mais n'a pas de nom à afficher. Libellé à décider au lot 8 (ex. « Un ancien membre l'a déjà mis dans le caddie »).
+- **SPEC 3.1, simplification des rayons** : rayons fixes gérés par les administrateurs (36 rayons, annexe §18), un rayon par article avec un rangement facultatif par magasin, l'ordre des rayons d'un magasin commun à tous, un seul mode réorganiser (préparation et courses). Parcours personnels, positions dans un rayon, sous-rayons, dictionnaire et modération partent en V2 ou en §17. `src/lib/sort.ts` simplifié au lot 5b.
 - **Ordre des magasins modifiable par tous, sans révision (V1)** : une erreur ou un vandalisme ne se rattrape pas avant DIS-03 (V2). Seule la limite CON-08 protège.
 - **OFF-05, rejeu d'une création fusionnée** : l'id d'une création fusionnée n'est jamais inséré. Un rejeu tardif repasse par la fusion : un article remis au catalogue entre-temps repasserait à « à acheter ». Absent du SPEC, à traiter avec OFF-04 (lot 6).
+- **Fuse.js inutilisé** : la recherche est un moteur maison (§16.1 amendé). La dépendance `fuse.js` et la mention dans `CLAUDE.md` (Stack) sont à retirer.
 - **Performance de la RLS** : les politiques appellent `est_membre(list_id)` pour chaque ligne. À remplacer par un `list_id in (select … from list_members …)` si les listes deviennent grandes.
 - **Quantité au catalogue** : la base refuse une quantité sur un article au catalogue (ART-02). Le tiroir d'article (lot 5c) ne doit proposer la quantité que pour un article à acheter ou au caddie.
 - **OFF-04, conflit au rejeu** : aucune règle pure ne traite encore le rejeu d'une action hors ligne sur un article modifié entre-temps par un autre membre (ex. mon retrait arrive sur un article qu'il a mis au caddie). À écrire au lot 6.

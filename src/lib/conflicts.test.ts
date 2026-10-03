@@ -15,6 +15,7 @@ const base: ArticleState = {
   status: "a_acheter",
   quantity: null,
   deletedAt: null,
+  statusBy: OTHER,
   updatedBy: OTHER,
   updatedAt: "2026-10-03T10:00:00.000Z",
 };
@@ -107,8 +108,20 @@ describe("needsRemovalConfirmation (COL-04)", () => {
     expect(needsRemovalConfirmation(state({ status: "caddie" }), ME)).toBe(true);
   });
 
+  it("still asks after I changed the quantity of that article", () => {
+    expect(
+      needsRemovalConfirmation(state({ status: "caddie", statusBy: OTHER, updatedBy: ME }), ME),
+    ).toBe(true);
+  });
+
   it("does not ask when I put it in the cart myself", () => {
-    expect(needsRemovalConfirmation(state({ status: "caddie", updatedBy: ME }), ME)).toBe(false);
+    expect(
+      needsRemovalConfirmation(state({ status: "caddie", statusBy: ME, updatedBy: OTHER }), ME),
+    ).toBe(false);
+  });
+
+  it("asks when the member who put it in the cart deleted their account", () => {
+    expect(needsRemovalConfirmation(state({ status: "caddie", statusBy: null }), ME)).toBe(true);
   });
 
   it("does not ask outside the cart", () => {

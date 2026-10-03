@@ -143,7 +143,7 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 - **ART-02.** La quantité ne sert qu'aux besoins ponctuels. Elle revient à vide quand l'article retourne au catalogue.
 - **ART-03.** Un article ne se crée que depuis la recherche, par l'action explicite « Créer [texte] ».
 - **ART-04.** Le nom normalisé (REC-02) est unique dans la liste. Si une création correspond à un article existant, aucun doublon n'est créé : l'article existant passe à « à acheter » s'il était au catalogue, reste dans le caddie s'il y était, et un message l'indique (même règle que OFF-05).
-- **ART-05.** À la création, le rayon est obligatoire. Si un article de même nom normalisé existe dans une autre liste du compte, son rayon est présélectionné et « Créer » s'applique en un geste. Sinon, des pastilles sous « Créer [texte] » proposent les 5 rayons les plus utilisés dans la liste, « Autre » et « Tous les rayons… » (tiroir avec un champ de filtre) : un tap choisit le rayon et crée l'article.
+- **ART-05.** À la création, le rayon est obligatoire. Si un article de même nom normalisé existe dans une autre liste du compte, son rayon est présélectionné (le plus récemment modifié s'il y en a plusieurs) et « Créer » s'applique en un geste. Sinon, des pastilles sous « Créer [texte] » proposent les 5 rayons les plus utilisés dans la liste (à égalité, et pour compléter, dans l'ordre de référence), « Autre » et « Tous les rayons… » (tiroir avec un champ de filtre) : un tap choisit le rayon et crée l'article.
 - **ART-06.** Un tap sur un article, en mode préparation, ouvre le tiroir d'édition : nom, quantité, rayon dans la vue sélectionnée, suppression. La quantité ne se saisit que pour un article à acheter ou dans le caddie (ART-02). Renommer en un nom normalisé déjà présent dans la liste échoue avec le message « Un article du même nom existe déjà ».
 - **ART-07.** Quand un magasin est sélectionné, changer le rayon d'un article (tiroir ou mode réorganiser) modifie son rangement dans ce magasin. Une case « Dans tous les magasins » modifie son rayon et efface ses rangements. En vue « Défaut », le changement modifie toujours son rayon, sans toucher à ses rangements ; le tiroir les signale par une mention discrète sous le champ « Rayon », par exemple « Rangé ailleurs dans 1 magasin ». Dans tous les cas, il vaut pour tous les membres de la liste.
 - **ART-08.** La suppression définitive n'est accessible que depuis le tiroir d'édition. Elle est douce (date de suppression), retire l'article de la liste et de la recherche, et propose « Annuler » pendant 6 secondes. Si un article de même nom normalisé a été créé entre-temps, l'annulation échoue avec le message « Un article du même nom existe déjà ».
@@ -152,7 +152,7 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 
 - **REC-01.** Une barre de recherche est fixée en haut de l'écran d'une liste. Elle porte sur tous les articles non supprimés de la liste, quel que soit leur statut.
 - **REC-02.** La saisie et les noms sont comparés sous forme normalisée : minuscules, accents retirés, « œ » transformé en « oe » et « æ » en « ae », espaces réduits et retirés aux extrémités, « s » ou « x » final retiré pour les mots de 4 lettres ou plus. Seules les lettres comptent pour la longueur d'un mot, mesurée avant ce retrait. Les autres caractères (trait d'union, apostrophe, chiffres, « × ») sont conservés.
-- **REC-03.** La recherche tolère une faute de frappe dans les mots de 4 lettres ou plus. Les correspondances exactes passent avant les approximatives.
+- **REC-03.** La recherche tolère une faute de frappe dans les mots de 4 lettres ou plus (comptées comme en REC-02). Les correspondances exactes passent avant les approximatives ; parmi les exactes, le nom identique à la saisie, puis les noms qui commencent par elle, puis les autres ; à rang égal, l'ordre alphabétique.
 - **REC-04.** Les résultats s'affichent dès le premier caractère, en moins de 50 ms pour 1 000 articles, y compris hors ligne.
 - **REC-05.** Chaque résultat indique son statut par un badge : « À acheter » ou « Dans le caddie ».
 - **REC-06.** Un tap sur un résultat du catalogue le passe à « à acheter ». Un tap sur un article déjà à acheter ou dans le caddie le met en évidence dans la liste, sans autre effet.
@@ -163,7 +163,7 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 ## 7. Mode préparation
 
 - **PRE-01.** L'écran affiche, de haut en bas : l'en-tête (NAV-02), la recherche, la barre d'affichage (PRE-10), les articles dans le caddie s'il n'est pas vide (titrés par le bandeau COL-05 pendant une session d'un autre membre), les articles à acheter, puis une section repliée « Tous les articles (n) » (catalogue).
-- **PRE-02.** En affichage par rayon, les rayons suivent l'ordre de la vue sélectionnée : l'ordre du magasin, ou l'ordre de référence pour « Défaut ». Dans un rayon, les articles sont triés par ordre alphabétique.
+- **PRE-02.** En affichage par rayon, les rayons suivent l'ordre de la vue sélectionnée : l'ordre du magasin, ou l'ordre de référence pour « Défaut ». Dans un rayon, les articles sont triés par ordre alphabétique, les nombres dans l'ordre naturel (« ×6 » avant « ×12 »).
 - **PRE-03.** Les titres de rayon sont discrets : petite taille, majuscules, couleur atténuée. Le titre du rayon en cours reste collé en haut pendant le défilement. Les rayons vides ne s'affichent pas.
 - **PRE-04.** « Autre » est un rayon ordinaire : il prend sa place dans l'ordre de la vue, en dernier dans l'ordre de référence.
 - **PRE-05.** Aucune case à cocher n'est affichée dans ce mode.
@@ -337,7 +337,7 @@ Connexion, inscription avec code, demande d'accès, accueil (listes du compte), 
 - **Socle** : Vite, React, TypeScript strict, pnpm, TanStack Router.
 - **Interface** : Tailwind v4, shadcn/ui, lucide-react, Sonner, Vaul, Motion, dnd-kit. i18next pour les textes d'interface, centralisés par espace de noms, en français seul.
 - **Données** : Supabase (Postgres, Auth, Realtime), TanStack Query en mode hors ligne d'abord avec cache persisté dans IndexedDB, Zustand persisté pour l'état local, Zod.
-- **Recherche** : Fuse.js côté client pour les articles. Recherche de magasins côté serveur (pg_trgm et distance géographique).
+- **Recherche** : moteur maison côté client pour les articles (préfixe par mot, les mots étant séparés par les espaces, apostrophes et traits d'union ; une faute par mot de 4 lettres ou plus), car aucun réglage de Fuse.js ne respecte REC-03 (il cherche dans le milieu des mots et ne borne pas le nombre de fautes). Recherche de magasins côté serveur (pg_trgm et distance géographique).
 - **PWA** : vite-plugin-pwa (Workbox).
 - **Anti-abus** : Captcha Cloudflare Turnstile sur la demande d'accès et, en V2, sur l'inscription.
 

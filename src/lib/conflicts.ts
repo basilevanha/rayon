@@ -5,6 +5,8 @@ export type ArticleState = {
   status: ArticleStatus;
   quantity: number | null;
   deletedAt: string | null;
+  /** Author of the last status change (COL-04). null: account deleted since. */
+  statusBy: string | null;
   updatedBy: string;
   /** Server timestamp (COL-02). */
   updatedAt: string;
@@ -55,12 +57,15 @@ export function remoteChangeAlert(
   return null;
 }
 
-/** Removing an article another member put in the cart needs confirmation (COL-04). */
+/**
+ * Removing an article another member put in the cart needs confirmation (COL-04).
+ * statusBy, unlike updatedBy, survives a later quantity change.
+ */
 export function needsRemovalConfirmation(
-  article: Pick<ArticleState, "status" | "updatedBy">,
+  article: Pick<ArticleState, "status" | "statusBy">,
   me: string,
 ): boolean {
-  return article.status === "caddie" && article.updatedBy !== me;
+  return article.status === "caddie" && article.statusBy !== me;
 }
 
 /**

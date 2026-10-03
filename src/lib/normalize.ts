@@ -7,8 +7,8 @@ function stripPlural(word: string): string {
   return /[sx]$/.test(word) ? word.slice(0, -1) : word;
 }
 
-/** Normalized form used to compare names and searches (REC-02). */
-export function normalizeName(input: string): string {
+/** REC-02 without the plural rule: lower case, « œ » and « æ » expanded, no accents, spaces reduced. */
+export function foldName(input: string): string {
   return input
     .toLowerCase()
     .replaceAll("œ", "oe")
@@ -16,8 +16,10 @@ export function normalizeName(input: string): string {
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
     .replace(/\s+/g, " ")
-    .trim()
-    .split(" ")
-    .map(stripPlural)
-    .join(" ");
+    .trim();
+}
+
+/** Normalized form used to compare names and searches (REC-02). */
+export function normalizeName(input: string): string {
+  return foldName(input).split(" ").map(stripPlural).join(" ");
 }
