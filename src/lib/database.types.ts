@@ -216,18 +216,21 @@ export type Database = {
       };
       lists: {
         Row: {
+          activity_at: string;
           created_at: string;
           emoji: string;
           id: string;
           name: string;
         };
         Insert: {
+          activity_at?: string;
           created_at?: string;
           emoji?: string;
           id: string;
           name: string;
         };
         Update: {
+          activity_at?: string;
           created_at?: string;
           emoji?: string;
           id?: string;
