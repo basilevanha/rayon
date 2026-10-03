@@ -88,6 +88,153 @@ export type Database = {
         };
         Relationships: [];
       };
+      invitations: {
+        Row: {
+          accepted_at: string | null;
+          account_created_at: string | null;
+          code: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          issued_by: string | null;
+          list_id: string;
+          reserved_email: string | null;
+          revoked_at: string | null;
+          used_at: string | null;
+        };
+        Insert: {
+          accepted_at?: string | null;
+          account_created_at?: string | null;
+          code: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          issued_by?: string | null;
+          list_id: string;
+          reserved_email?: string | null;
+          revoked_at?: string | null;
+          used_at?: string | null;
+        };
+        Update: {
+          accepted_at?: string | null;
+          account_created_at?: string | null;
+          code?: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          issued_by?: string | null;
+          list_id?: string;
+          reserved_email?: string | null;
+          revoked_at?: string | null;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invitations_issued_by_fkey";
+            columns: ["issued_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invitations_list_id_fkey";
+            columns: ["list_id"];
+            isOneToOne: false;
+            referencedRelation: "lists";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      list_members: {
+        Row: {
+          is_creator: boolean;
+          joined_at: string;
+          list_id: string;
+          user_id: string;
+        };
+        Insert: {
+          is_creator?: boolean;
+          joined_at?: string;
+          list_id: string;
+          user_id: string;
+        };
+        Update: {
+          is_creator?: boolean;
+          joined_at?: string;
+          list_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "list_members_list_id_fkey";
+            columns: ["list_id"];
+            isOneToOne: false;
+            referencedRelation: "lists";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "list_members_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      list_removals: {
+        Row: {
+          list_id: string;
+          removed_at: string;
+          user_id: string;
+        };
+        Insert: {
+          list_id: string;
+          removed_at?: string;
+          user_id: string;
+        };
+        Update: {
+          list_id?: string;
+          removed_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "list_removals_list_id_fkey";
+            columns: ["list_id"];
+            isOneToOne: false;
+            referencedRelation: "lists";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "list_removals_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lists: {
+        Row: {
+          created_at: string;
+          emoji: string;
+          id: string;
+          name: string;
+        };
+        Insert: {
+          created_at?: string;
+          emoji?: string;
+          id: string;
+          name: string;
+        };
+        Update: {
+          created_at?: string;
+          emoji?: string;
+          id?: string;
+          name?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -114,8 +261,33 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      accepter_invitation: { Args: { p_code: string }; Returns: string };
+      accepter_invitations_en_attente: { Args: Record<PropertyKey, never>; Returns: string[] };
       controle_inscription: { Args: { event: Json }; Returns: Json };
+      creer_invitation: {
+        Args: { p_list_id: string };
+        Returns: {
+          code: string;
+          expires_at: string;
+          id: string;
+        }[];
+      };
+      creer_liste: { Args: { p_emoji: string; p_id: string; p_name: string }; Returns: undefined };
+      est_membre: { Args: { p_list_id: string }; Returns: boolean };
       liberer_inscriptions_non_confirmees: { Args: Record<PropertyKey, never>; Returns: undefined };
+      mon_profil: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          display_name: string;
+          id: string;
+          role: string;
+        }[];
+      };
+      partage_une_liste: { Args: { p_user_id: string }; Returns: boolean };
+      quitter_liste: { Args: { p_list_id: string }; Returns: undefined };
+      retirer_membre: { Args: { p_list_id: string; p_user_id: string }; Returns: undefined };
+      revoquer_invitation: { Args: { p_id: string }; Returns: undefined };
+      supprimer_liste: { Args: { p_list_id: string; p_name: string }; Returns: undefined };
     };
     Enums: {
       [_ in never]: never;
