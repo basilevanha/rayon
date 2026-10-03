@@ -148,7 +148,7 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 ## 6. Recherche
 
 - **REC-01.** Une barre de recherche est fixée en haut de l'écran d'une liste. Elle porte sur tous les articles non supprimés de la liste, quel que soit leur statut.
-- **REC-02.** La saisie et les noms sont comparés sous forme normalisée : minuscules, accents retirés, « œ » transformé en « oe », espaces réduits, « s » ou « x » final retiré pour les mots de 4 lettres ou plus.
+- **REC-02.** La saisie et les noms sont comparés sous forme normalisée : minuscules, accents retirés, « œ » transformé en « oe » et « æ » en « ae », espaces réduits et retirés aux extrémités, « s » ou « x » final retiré pour les mots de 4 lettres ou plus. Seules les lettres comptent pour la longueur d'un mot, mesurée avant ce retrait. Les autres caractères (trait d'union, apostrophe, chiffres, « × ») sont conservés.
 - **REC-03.** La recherche tolère une faute de frappe dans les mots de 4 lettres ou plus. Les correspondances exactes passent avant les approximatives.
 - **REC-04.** Les résultats s'affichent dès le premier caractère, en moins de 50 ms pour 1 000 articles, y compris hors ligne.
 - **REC-05.** Chaque résultat indique son statut par un badge : « À acheter » ou « Dans le caddie ».
@@ -215,7 +215,7 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 ### 9.1 Référentiel de rayons
 
 - **RAY-01.** Les rayons forment un référentiel commun à toute l'application, avec un ordre de référence. Il est géré par les éditeurs.
-- **RAY-02.** Une liste peut créer des sous-rayons, chacun rattaché à un rayon commun (ex. « Bébé » rattaché à « Hygiène »). Un sous-rayon est trié à l'emplacement de son rayon parent.
+- **RAY-02.** Une liste peut créer des sous-rayons, chacun rattaché à un rayon commun (ex. « Bébé » rattaché à « Hygiène »). Un sous-rayon est trié à l'emplacement de son rayon parent, après celui-ci ; plusieurs sous-rayons d'un même parent suivent l'ordre alphabétique.
 - **RAY-03.** Tout utilisateur peut suggérer un nouveau rayon commun. Un rayon accepté n'est ajouté à aucune disposition automatiquement.
 - **RAY-04.** La suppression d'un sous-rayon déplace ses articles vers son rayon parent.
 
@@ -238,8 +238,8 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 
 - **RNG-01.** Dans un magasin, un article est rangé dans son rayon de départ tant qu'il n'y a pas été rangé autrement.
 - **RNG-02.** Un rangement est propre à une liste et à un magasin. Il est partagé par tous les membres de la liste.
-- **RNG-03.** Si le rayon d'un article est absent de la disposition du magasin, l'article va dans « Sans rayon ».
-- **RNG-04.** Par défaut, les articles d'un rayon sont triés par ordre alphabétique, jusqu'à ce qu'un membre les réordonne (COU-20).
+- **RNG-03.** Si le rayon d'un article (ou, pour un sous-rayon, son rayon parent) est absent de la disposition du magasin, l'article va dans « Sans rayon ». La disposition décide des rayons présents ; le parcours n'en fixe que l'ordre.
+- **RNG-04.** Par défaut, les articles d'un rayon sont triés par ordre alphabétique, jusqu'à ce qu'un membre les réordonne (COU-20). Les articles positionnés passent avant les autres, qui restent par ordre alphabétique.
 
 ### 9.5 Parcours
 
@@ -275,13 +275,13 @@ Note de priorité : l'apprentissage est une évolution, non prioritaire au lance
 ## 12. Collaboration en temps réel
 
 - **COL-01.** Toute modification d'une liste est propagée aux autres membres en moins de 2 secondes sur un réseau normal.
-- **COL-02.** Chaque modification enregistre son auteur et son horodatage serveur. En cas d'écritures concurrentes, la dernière l'emporte.
+- **COL-02.** Chaque modification enregistre son auteur et son horodatage serveur. En cas d'écritures concurrentes, la dernière l'emporte ; à horodatage égal, l'identifiant d'auteur départage, pour un résultat déterministe.
 - **COL-03.** En mode courses, une modification faite par un autre membre n'est jamais silencieuse :
   - ajout : l'article apparaît dans son rayon avec le badge « Ajouté par [membre] » jusqu'à la fin de la session ;
   - retrait : l'article reste à sa place, barré, avec « Retiré par [membre] » et un bouton pour masquer. S'il était dans le caddie, la mention devient « À reposer » ;
   - changement de quantité : badge « Quantité modifiée » ;
   - chaque alerte déclenche une vibration si l'appareil la prend en charge.
-- **COL-04.** Retirer un article qui est dans le caddie demande une confirmation : « [membre] l'a déjà mis dans le caddie ».
+- **COL-04.** Retirer un article qu'un autre membre a mis dans le caddie demande une confirmation : « [membre] l'a déjà mis dans le caddie ». Aucune confirmation si l'on a mis l'article dans le caddie soi-même.
 - **COL-05.** Un bandeau « [membre] fait les courses chez [magasin] » s'affiche chez les autres membres pendant une session.
 - **COL-06.** Quand un membre termine la session, les autres appareils affichent « [membre] a terminé les courses » et quittent le mode courses s'ils y étaient.
 - **COL-07.** Un changement de rangement fait par un membre pendant la session d'un autre ne retrie pas sa liste avant la session suivante.
@@ -292,7 +292,7 @@ Note de priorité : l'apprentissage est une évolution, non prioritaire au lance
 - **OFF-02.** Chaque action s'applique immédiatement à l'écran. Elle est mise en file d'attente, puis rejouée dans l'ordre au retour du réseau, même après fermeture de l'application.
 - **OFF-03.** Un indicateur affiche « Hors ligne · n modifications en attente ».
 - **OFF-04.** Au rejeu, les règles COL-02 à COL-04 s'appliquent. Un conflit avec la modification d'un autre membre produit l'alerte correspondante.
-- **OFF-05.** Un article créé hors ligne reçoit un identifiant généré sur l'appareil. Si un article de même nom normalisé existe au rejeu, les deux sont fusionnés.
+- **OFF-05.** Un article créé hors ligne reçoit un identifiant généré sur l'appareil. Si un article de même nom normalisé existe au rejeu, les deux sont fusionnés : l'article existant est conservé ; il passe à « à acheter » s'il était au catalogue et reste dans le caddie s'il y était ; la quantité saisie hors ligne remplace la sienne si elle est renseignée ; les rangements de l'article créé hors ligne sont abandonnés.
 - **OFF-06.** Le référentiel de rayons, ainsi que la disposition, le parcours et les rangements du magasin par défaut et des 5 derniers magasins utilisés, sont disponibles hors ligne. Les coches (APP-01) sont mises en file comme les autres actions.
 - **OFF-07.** Les actions communautaires (créer un magasin, modifier une disposition, suggérer, signaler) et les invitations nécessitent le réseau. Elles sont désactivées hors ligne, avec une explication.
 - **OFF-08.** Une session expirée ne bloque pas l'usage local. La reconnexion est demandée sans perte de la file d'attente.
@@ -363,7 +363,7 @@ Connexion, inscription avec code, demande d'accès, accueil sans liste, liste (p
 - **learning_prompts** : propositions d'apprentissage affichées, avec leur réponse, pour ne pas les répéter.
 - **suggestions, reports** : suggestions et signalements, avec statut, motif et éditeur responsable.
 - **TEC-01.** Index unique sur (list_id, nom normalisé) parmi les articles non supprimés.
-- **TEC-02.** Le tri d'une liste combine, dans cet ordre : le parcours du compte, à défaut la disposition commune, à défaut l'ordre de référence ; puis le rangement de la liste dans le magasin, à défaut le rayon de départ ; puis la position, à défaut l'ordre alphabétique.
+- **TEC-02.** Le tri d'une liste combine, dans cet ordre : le parcours du compte, à défaut la disposition commune, à défaut l'ordre de référence ; puis le rangement de la liste dans le magasin, à défaut le rayon de départ ; puis la position, à défaut l'ordre alphabétique. Un rayon de la disposition absent du parcours garde sa place relative dans la disposition ; un rayon du parcours absent de la disposition n'est pas affiché et ses articles vont dans « Sans rayon » (RNG-03).
 - **TEC-03.** Fonctions SQL atomiques : set_status (idempotente), terminer_session, creer_article, ranger_article, accepter_invitation, controle_inscription (hook « Before User Created »), fusionner_magasins, restaurer_revision.
 - **TEC-04.** Migrations versionnées dans le dépôt. Types TypeScript générés depuis le schéma.
 

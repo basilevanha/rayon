@@ -2,15 +2,15 @@
 
 État d'avancement par rapport à `docs/SPEC.md`. Mis à jour à la fin de chaque lot.
 
-Dernière mise à jour : 3 octobre 2026, après le lot 2 (comptes) et la centralisation des textes.
+Dernière mise à jour : 3 octobre 2026, après le lot 3 (logique pure).
 
 ## Synthèse
 
 | | Exigences | Part |
 |---|---:|---:|
-| ✅ Fait | 13 | 7 % |
-| 🟡 Partiel | 17 | 10 % |
-| ⬜ À faire | 147 | 83 % |
+| ✅ Fait | 15 | 8 % |
+| 🟡 Partiel | 22 | 12 % |
+| ⬜ À faire | 140 | 79 % |
 | **Total** | **177** | |
 
 Une exigence est « faite » quand elle est implémentée, testée et vérifiée dans l'app. « Partiel » signifie qu'une partie est en place, et la note précise ce qui manque.
@@ -22,8 +22,8 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 | 1. Socle | Client Supabase typé, cache hors ligne, routes, layout, PWA | ✅ | `99232de` |
 | 2. Comptes | Inscription sur invitation, connexion sans mot de passe, profil | ✅ | `602116c` |
 | Transverse | Textes centralisés (i18next) | ✅ | `ed40626` |
-| 3. Logique pure | Normalisation, tri, conflits (tests d'abord) | ⬜ **Prochain possible** : sans dépendance | |
-| 4. Listes | Listes, membres, invitations à une liste, accueil, tiroir des listes | ⬜ **Prochain possible** | |
+| 3. Logique pure | Normalisation, tri, conflits (tests d'abord) | ✅ | |
+| 4. Listes | Listes, membres, invitations à une liste, accueil, tiroir des listes | ⬜ **Prochain** | |
 | 5. Articles et recherche | Référentiel de rayons, articles, recherche, mode préparation | ⬜ | |
 | 6. Hors ligne et temps réel | File de modifications, indicateur, Realtime | ⬜ | |
 | 7. Magasins et parcours | Magasins, dispositions, rangements, parcours | ⬜ | |
@@ -65,7 +65,8 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 | Id | État | Note |
 |---|---|---|
 | ART-01 à ART-08 | ⬜ | Lot 5. |
-| REC-01 à REC-09 | ⬜ | Lot 5. La normalisation (REC-02) est au lot 3. |
+| REC-01, REC-03 à REC-09 | ⬜ | Lot 5. |
+| REC-02 | ✅ | `src/lib/normalize.ts`, table de cas partagée `normalize.cases.ts`. Version SQL au lot 5. |
 | PRE-01 à PRE-09 | ⬜ | Lot 5. |
 
 ### Mode courses (§8)
@@ -102,7 +103,8 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 
 | Id | État | Note |
 |---|---|---|
-| COL-01 à COL-07 | ⬜ | Lots 6 et 8. |
+| COL-01, COL-05 à COL-07 | ⬜ | Lots 6 et 8. |
+| COL-02 à COL-04 | 🟡 | Règles de décision dans `src/lib/conflicts.ts`. Reste : horodatage serveur et auteur en base (lot 5), alertes à l'écran (lot 8). |
 
 ### Hors ligne (§13)
 
@@ -110,7 +112,8 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 |---|---|---|
 | OFF-01 | 🟡 | Cache persisté dans IndexedDB. Reste : données des listes. |
 | OFF-02 | 🟡 | Mutations rejouables en place (nom affiché). Reste : file complète et rejeu ordonné (lot 6). |
-| OFF-03 à OFF-07 | ⬜ | Lot 6. |
+| OFF-03, OFF-04, OFF-06, OFF-07 | ⬜ | Lot 6. |
+| OFF-05 | 🟡 | Règle de fusion `mergeDuplicate`. Reste : UUID client et fusion au rejeu dans `creer_article` (lots 5 et 6). |
 | OFF-08 | 🟡 | Hors ligne, une session expirée ne bloque rien. Reste : en ligne, un jeton révoqué renvoie vers `/connexion` au lieu de demander la reconnexion. |
 
 ### Interface (§14)
@@ -134,7 +137,8 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 
 | Id | État | Note |
 |---|---|---|
-| TEC-01, TEC-02 | ⬜ | Lots 3 et 5. |
+| TEC-01 | ⬜ | Lot 5. |
+| TEC-02 | 🟡 | Fonction pure `sortList` (`src/lib/sort.ts`). Reste : branchement au mode préparation et au mode courses. |
 | TEC-03 | 🟡 | `controle_inscription` faite. Reste : les sept autres fonctions. |
 | TEC-04 | ✅ | Migrations versionnées, types générés. |
 | SEC-01 | 🟡 | RLS sur toutes les tables existantes, vérifiée par un test. À étendre à chaque nouvelle table. |
@@ -149,7 +153,7 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 | OPS-05 | ✅ | Développement local avec Supabase CLI. |
 | OPS-06 | ⬜ | SMTP externe. |
 | QUA-01 | 🟡 | Oxlint et Oxfmt en place. Reste : CI à chaque push. |
-| QUA-02 | ⬜ | Lot 3. |
+| QUA-02 | ✅ | Normalisation, tri, conflits et fusion des doublons testés. |
 | QUA-03 | 🟡 | Hook d'inscription et profils testés. Reste : listes et parcours. |
 | QUA-04 | ⬜ | Playwright en viewport mobile, à écrire au fil des lots. |
 | QUA-05 | ✅ | Écran de secours avec « Recharger ». |
@@ -160,3 +164,7 @@ Une exigence est « faite » quand elle est implémentée, testée et vérifiée
 - **OFF-08 en ligne** : avec un jeton révoqué, l'app redirige vers `/connexion` au lieu de demander la reconnexion. À traiter au lot 6.
 - **Délai de 15 minutes** : un code consommé sans compte créé est libéré au bout de 15 minutes. Ce délai est absent du SPEC et reste à valider.
 - **Icône de l'application** : provisoire, à remplacer, puis relancer `pnpm gen:icons`.
+- **COL-04, auteur de la mise au caddie** : la confirmation s'appuie sur `updated_by`, qui désigne le dernier à avoir modifié l'article. Si je change la quantité d'un article qu'un autre a mis au caddie, la confirmation disparaît et le nom affiché devient faux. Le modèle de données (§16.2) n'a pas de champ « mis au caddie par ». À trancher avant le lot 5.
+- **OFF-04, conflit au rejeu** : aucune règle pure ne traite encore le rejeu d'une action hors ligne sur un article modifié entre-temps par un autre membre (ex. mon retrait arrive sur un article qu'il a mis au caddie). À écrire au lot 6.
+- **COL-06 et alertes** : quand un autre membre termine la session, ses articles du caddie repassent au catalogue. `remoteChangeAlert` produirait une alerte « À reposer » par article. Le lot 8 doit traiter la fin de session à part.
+- **REC-02, mots composés** : un mot à trait d'union compte comme un seul mot, donc « Choux-fleurs » donne `choux-fleur` et ne correspond pas à « Chou-fleur ». C'est conforme au SPEC amendé, mais à confirmer.

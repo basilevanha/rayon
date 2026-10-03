@@ -1,0 +1,21 @@
+// Shared REC-02 cases: [input, expected]. Reused by the SQL version (lot 5).
+export const normalizeCases: ReadonlyArray<readonly [string, string]> = [
+  ["Œufs", "oeuf"],
+  ["ŒUFS", "oeuf"],
+  ["Crème  fraîche", "creme fraiche"],
+  ["  Pâtes  ", "pate"],
+  ["Noix", "noi"],
+  ["Choux", "chou"],
+  ["Riz", "riz"],
+  ["Jus", "jus"],
+  ["Prix", "pri"],
+  ["Œufs ×12", "oeuf ×12"],
+  ["Lait d'avoine", "lait d'avoine"],
+  ["Pain-surprises", "pain-surprise"],
+  ["Ænéas", "aenea"],
+  ["Pommes de terre", "pomme de terre"],
+  ["Tomates cerises", "tomate cerise"],
+  ["Stress", "stres"],
+  ["Sucre\tglace", "sucre glace"],
+  ["", ""],
+];
