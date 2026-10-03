@@ -1,6 +1,6 @@
 -- NAV-06 : date d'activité des listes
 begin;
-select plan(6);
+select plan(10);
 
 insert into auth.users (id, email) values
   ('a1111111-1111-1111-1111-111111111111', 'alice@pgtap.test'),
@@ -43,6 +43,36 @@ select count(*) from public.lists;
 reset role;
 select is((select activity_at from public.lists where id = '11111111-0000-0000-0000-000000000001'), now() - interval '1 day',
   'lire la liste ne change pas son activité');
+
+-- Articles : ajout, modification, changement de statut et retrait (NAV-06).
+select pg_temp.vieillir();
+set local role authenticated;
+select public.creer_article('aaaaaaaa-0000-0000-0000-000000000001', '11111111-0000-0000-0000-000000000001',
+  'Lait', (select id from public.rayons where name = 'Produits laitiers'), null);
+reset role;
+select is((select activity_at from public.lists where id = '11111111-0000-0000-0000-000000000001'), now(),
+  'l''ajout d''un article rend la liste active');
+
+select pg_temp.vieillir();
+set local role authenticated;
+update public.articles set quantity = 2;
+reset role;
+select is((select activity_at from public.lists where id = '11111111-0000-0000-0000-000000000001'), now(),
+  'la modification d''un article rend la liste active');
+
+select pg_temp.vieillir();
+set local role authenticated;
+select public.set_status('aaaaaaaa-0000-0000-0000-000000000001', 'catalogue');
+reset role;
+select is((select activity_at from public.lists where id = '11111111-0000-0000-0000-000000000001'), now(),
+  'le changement de statut d''un article rend la liste active');
+
+select pg_temp.vieillir();
+set local role authenticated;
+update public.articles set deleted_at = now();
+reset role;
+select is((select activity_at from public.lists where id = '11111111-0000-0000-0000-000000000001'), now(),
+  'le retrait d''un article rend la liste active');
 
 select * from finish();
 rollback;

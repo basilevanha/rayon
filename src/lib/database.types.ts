@@ -88,6 +88,80 @@ export type Database = {
         };
         Relationships: [];
       };
+      articles: {
+        Row: {
+          created_at: string;
+          deleted_at: string | null;
+          id: string;
+          list_id: string;
+          name: string;
+          normalized_name: string;
+          quantity: number | null;
+          rayon_id: string;
+          status: string;
+          status_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id: string;
+          list_id: string;
+          name: string;
+          normalized_name?: never;
+          quantity?: number | null;
+          rayon_id: string;
+          status?: string;
+          status_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          deleted_at?: string | null;
+          id?: string;
+          list_id?: string;
+          name?: string;
+          normalized_name?: never;
+          quantity?: number | null;
+          rayon_id?: string;
+          status?: string;
+          status_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "articles_list_id_fkey";
+            columns: ["list_id"];
+            isOneToOne: false;
+            referencedRelation: "lists";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "articles_rayon_id_fkey";
+            columns: ["rayon_id"];
+            isOneToOne: false;
+            referencedRelation: "rayons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "articles_status_by_fkey";
+            columns: ["status_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "articles_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       invitations: {
         Row: {
           accepted_at: string | null;
@@ -259,6 +333,27 @@ export type Database = {
         };
         Relationships: [];
       };
+      rayons: {
+        Row: {
+          deletable: boolean;
+          id: string;
+          name: string;
+          reference_order: number;
+        };
+        Insert: {
+          deletable?: boolean;
+          id?: string;
+          name: string;
+          reference_order: number;
+        };
+        Update: {
+          deletable?: boolean;
+          id?: string;
+          name?: string;
+          reference_order?: number;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -267,6 +362,23 @@ export type Database = {
       accepter_invitation: { Args: { p_code: string }; Returns: string };
       accepter_invitations_en_attente: { Args: Record<PropertyKey, never>; Returns: string[] };
       controle_inscription: { Args: { event: Json }; Returns: Json };
+      copier_liste: {
+        Args: { p_emoji: string; p_id: string; p_name: string; p_source_id: string };
+        Returns: undefined;
+      };
+      creer_article: {
+        Args: {
+          p_id: string;
+          p_list_id: string;
+          p_name: string;
+          p_quantity: number;
+          p_rayon_id: string;
+        };
+        Returns: {
+          article_id: string;
+          merged: boolean;
+        }[];
+      };
       creer_invitation: {
         Args: { p_list_id: string };
         Returns: {
@@ -286,10 +398,12 @@ export type Database = {
           role: string;
         }[];
       };
+      normaliser_nom: { Args: { p_name: string }; Returns: string };
       partage_une_liste: { Args: { p_user_id: string }; Returns: boolean };
       quitter_liste: { Args: { p_list_id: string }; Returns: undefined };
       retirer_membre: { Args: { p_list_id: string; p_user_id: string }; Returns: undefined };
       revoquer_invitation: { Args: { p_id: string }; Returns: undefined };
+      set_status: { Args: { p_article_id: string; p_status: string }; Returns: undefined };
       supprimer_liste: { Args: { p_list_id: string; p_name: string }; Returns: undefined };
     };
     Enums: {
