@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_app/")({
   component: LaunchPage,
 });
 
-// NAV-01, LST-03 : rouvre la dernière liste ouverte, sinon « Mes listes ».
+// NAV-01, LST-03 : rouvre la dernière liste ouverte, sinon l'accueil.
 function LaunchPage() {
   const { auth } = Route.useRouteContext();
   const lastListId = useLastListStore((state) => state.lastListId);

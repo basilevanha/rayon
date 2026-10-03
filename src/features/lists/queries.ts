@@ -14,9 +14,13 @@ export const listKeys = {
   invitations: (listId: string) => ["list", listId, "invitations"] as const,
 };
 
+// NAV-06 : la liste la plus récemment active d'abord ; à égalité, par nom (sans tenir
+// compte de la casse ni des accents, les nombres dans l'ordre naturel).
 export function sortLists(lists: readonly ListSummary[]): ListSummary[] {
-  return lists.toSorted((a, b) =>
-    a.name.localeCompare(b.name, "fr", { sensitivity: "base", numeric: true }),
+  return lists.toSorted(
+    (a, b) =>
+      Date.parse(b.activity_at) - Date.parse(a.activity_at) ||
+      a.name.localeCompare(b.name, "fr", { sensitivity: "base", numeric: true }),
   );
 }
 
@@ -25,7 +29,7 @@ export const listsQueryOptions = (userId: string) =>
   queryOptions({
     queryKey: listKeys.all(userId),
     queryFn: async () => {
-      const { data, error } = await supabase.from("lists").select("id, name, emoji");
+      const { data, error } = await supabase.from("lists").select("id, name, emoji, activity_at");
       if (error) throw error;
       return sortLists(z.array(listSummarySchema).parse(data));
     },
@@ -39,7 +43,7 @@ export const listQueryOptions = (listId: string) =>
       const { data, error } = await supabase
         .from("lists")
         .select(
-          "id, name, emoji, list_members(user_id, joined_at, is_creator, profiles(display_name))",
+          "id, name, emoji, activity_at, list_members(user_id, joined_at, is_creator, profiles(display_name))",
         )
         .eq("id", listId)
         .maybeSingle();

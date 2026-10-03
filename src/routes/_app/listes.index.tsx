@@ -11,22 +11,22 @@ export const Route = createFileRoute("/_app/listes/")({
   component: MyListsPage,
 });
 
-// NAV-06 : toutes les listes du compte. Le nombre d'articles à acheter (LST-02)
+// NAV-06 : page d'accueil, titrée du nom de l'application : toutes les listes du compte. Le nombre d'articles à acheter (LST-02)
 // arrive avec les articles.
 function MyListsPage() {
   const { auth } = Route.useRouteContext();
-  const { t } = useTranslation("lists");
+  const { t } = useTranslation(["lists", "common"]);
   const drawers = useDrawerNavigation();
   const { data: lists } = useQuery(listsQueryOptions(auth.userId));
 
   return (
     <>
       <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4 pr-2">
-        <h1 className="flex-1 truncate text-lg font-semibold">{t("myLists.title")}</h1>
+        <h1 className="flex-1 truncate text-lg font-semibold">{t("common:app.name")}</h1>
         <AccountButton userId={auth.userId} />
       </header>
       <main className="flex flex-1 flex-col gap-6 p-4">
-        {lists?.length === 0 && <p className="text-muted-foreground">{t("myLists.empty")}</p>}
+        {lists?.length === 0 && <p className="text-muted-foreground">{t("home.empty")}</p>}
         {lists && lists.length > 0 && (
           <ul className="flex flex-col gap-1">
             {lists.map((list) => (

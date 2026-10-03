@@ -100,7 +100,8 @@ export function registerListMutations(client: QueryClient): void {
       call(supabase.rpc("creer_liste", { p_id: listId, p_name: name, p_emoji: emoji })),
     onMutate: async ({ userId, listId, name, emoji, displayName }: CreateListVariables) => {
       const snapshot = await takeSnapshot(client, userId, listId);
-      const summary = { id: listId, name, emoji };
+      // NAV-06 : une liste créée est la plus récemment active.
+      const summary = { id: listId, name, emoji, activity_at: new Date().toISOString() };
       client.setQueryData(listKeys.all(userId), (old: ListSummary[] | undefined) =>
         sortLists([...(old ?? []), summary]),
       );
@@ -123,14 +124,18 @@ export function registerListMutations(client: QueryClient): void {
       call(supabase.from("lists").update({ name, emoji }).eq("id", listId)),
     onMutate: async ({ userId, listId, name, emoji }: UpdateListVariables) => {
       const snapshot = await takeSnapshot(client, userId, listId);
+      // NAV-06 : renommer la liste la fait remonter.
+      const activity_at = new Date().toISOString();
       client.setQueryData(
         listKeys.all(userId),
         (old: ListSummary[] | undefined) =>
           old &&
-          sortLists(old.map((list) => (list.id === listId ? { ...list, name, emoji } : list))),
+          sortLists(
+            old.map((list) => (list.id === listId ? { ...list, name, emoji, activity_at } : list)),
+          ),
       );
       client.setQueryData(listKeys.detail(listId), (old: ListDetail | null | undefined) =>
-        old ? { ...old, name, emoji } : old,
+        old ? { ...old, name, emoji, activity_at } : old,
       );
       return snapshot;
     },

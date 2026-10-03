@@ -2,7 +2,7 @@ export type PageTransition = "push" | "pop";
 
 type Page = { key: string; depth: number };
 
-// Pages de la navigation entre listes : « Mes listes » (0), puis une liste (1).
+// Pages de la navigation entre listes : l'accueil (0), puis une liste (1).
 // Les réglages s'affichent par-dessus leur liste : même page.
 function pageOf(pathname: string): Page | null {
   const path = pathname.replace(/\/+$/, "");

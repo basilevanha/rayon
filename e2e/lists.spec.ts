@@ -9,7 +9,7 @@ test("créer une liste, inviter un membre qui s'inscrit avec le lien, transmettr
   await alice.goto(`/connexion?invitation=${createAppInvitation()}`);
   await signUp(alice, uniqueEmail("alice"), "Alice");
 
-  // NAV-01, NAV-06 : sans dernière liste, « Mes listes ».
+  // NAV-01, NAV-06 : sans dernière liste, la page d'accueil.
   await alice.getByRole("button", { name: t("lists:actions.add") }).click();
   await alice.getByRole("button", { name: t("lists:actions.create") }).click();
   await alice.getByLabel(t("lists:create.nameLabel")).fill("Maison");
@@ -20,9 +20,9 @@ test("créer une liste, inviter un membre qui s'inscrit avec le lien, transmettr
     alice.getByRole("button", { name: t("lists:header.switchList", { name }) });
   await expect(switchTo("Maison")).toHaveCount(0);
 
-  // NAV-02, NAV-06 : la flèche ramène à « Mes listes », où l'on crée une seconde liste.
+  // NAV-02, NAV-06 : la flèche ramène à l'accueil, où l'on crée une seconde liste.
   await alice.getByRole("link", { name: t("lists:header.back") }).click();
-  await expect(alice.getByRole("heading", { name: t("lists:myLists.title") })).toBeVisible();
+  await expect(alice.getByRole("heading", { name: t("common:app.name") })).toBeVisible();
   await alice.getByRole("button", { name: t("lists:actions.add") }).click();
   await alice.getByRole("button", { name: t("lists:actions.create") }).click();
   await alice.getByLabel(t("lists:create.nameLabel")).fill("Bureau");
@@ -36,6 +36,14 @@ test("créer une liste, inviter un membre qui s'inscrit avec le lien, transmettr
   await expect(alice.getByRole("dialog")).toHaveCount(0);
   await switchTo("Bureau").click();
   await drawer.getByRole("link", { name: "Maison" }).click();
+  await expect(switchTo("Maison")).toBeVisible();
+
+  // NAV-06 : la liste la plus récemment active vient en premier ; ouvrir une liste ne la fait pas remonter.
+  await alice.getByRole("link", { name: t("lists:header.back") }).click();
+  await expect(alice.getByRole("main").getByRole("link")).toHaveText(
+    ["Bureau", "Maison"].map((n) => new RegExp(n)),
+  );
+  await alice.getByRole("main").getByRole("link", { name: "Maison" }).click();
   await expect(switchTo("Maison")).toBeVisible();
 
   // INV-01

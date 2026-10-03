@@ -21,7 +21,12 @@ const OTHER_ID = "0b9f8e7d-6c5b-4a39-8281-7f6e5d4c3b2a";
 const LIST_ID = "6f1c2b8e-3d4a-4f5b-9c6d-7e8f9a0b1c2d";
 const NEW_ID = "9d8c7b6a-5f4e-4d3c-8b2a-1f0e9d8c7b6a";
 
-const maison: ListSummary = { id: LIST_ID, name: "Maison", emoji: "🏠" };
+const maison: ListSummary = {
+  id: LIST_ID,
+  name: "Maison",
+  emoji: "🏠",
+  activity_at: "2026-10-01T10:00:00+00:00",
+};
 const maisonDetail: ListDetail = {
   ...maison,
   members: [
@@ -93,29 +98,30 @@ describe("list mutations (OFF-02)", () => {
     expect(order).toEqual(["create:start", "create:end", "update"]);
   });
 
-  it("creates a list optimistically, sorted by name, with its creator (LST-01)", async () => {
+  it("creates a list optimistically, first in the list (NAV-06), with its creator (LST-01)", async () => {
     const { client, run } = setup();
     const resolve = deferredRpc();
     const variables: CreateListVariables = {
       userId: USER_ID,
       listId: NEW_ID,
-      name: "Apéro",
+      name: "Vacances",
       emoji: "🎉",
       displayName: "Alice",
     };
     const pending = run(listMutationKeys.create, variables);
     await vi.waitFor(() => expect(rpc).toHaveBeenCalled());
 
-    expect(client.getQueryData(listKeys.all(USER_ID))).toEqual([
-      { id: NEW_ID, name: "Apéro", emoji: "🎉" },
-      maison,
+    // NAV-06 : la nouvelle liste est la plus récemment active.
+    expect(client.getQueryData<ListSummary[]>(listKeys.all(USER_ID))?.map((l) => l.id)).toEqual([
+      NEW_ID,
+      LIST_ID,
     ]);
     expect(client.getQueryData<ListDetail>(listKeys.detail(NEW_ID))?.members).toMatchObject([
       { userId: USER_ID, isCreator: true, displayName: "Alice" },
     ]);
     expect(rpc).toHaveBeenCalledWith("creer_liste", {
       p_id: NEW_ID,
-      p_name: "Apéro",
+      p_name: "Vacances",
       p_emoji: "🎉",
     });
     resolve();

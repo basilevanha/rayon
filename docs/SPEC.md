@@ -75,13 +75,13 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 - **CPT-03.** Session persistante de longue durée, renouvelée automatiquement.
 - **CPT-04.** Le profil contient un nom affiché (obligatoire, 1 à 30 caractères), visible des membres des listes partagées, et le nombre d'invitations à l'application restantes.
 - **CPT-05.** L'utilisateur peut exporter ses données en JSON et supprimer son compte. La suppression le retire de toutes ses listes (LST-07 et LST-08), supprime ses parcours et anonymise ses contributions aux magasins.
-- **CPT-06.** L'avatar du compte, sur la page « Mes listes », ouvre un tiroir : nom affiché (modifiable), adresse email, nombre d'invitations à l'application restantes et « Se déconnecter ».
+- **CPT-06.** L'avatar du compte, sur la page d'accueil, ouvre un tiroir : nom affiché (modifiable), adresse email, nombre d'invitations à l'application restantes et « Se déconnecter ».
 - **CPT-07.** La déconnexion efface les données de l'appareil : cache, file d'attente et dernière liste ouverte. Si des modifications attendent le réseau, une confirmation l'indique : « n modifications non envoyées seront perdues ».
 
 ### 3.4 Listes
 
 - **LST-01.** Un compte peut créer des listes et appartenir à plusieurs listes. Une liste a un nom (1 à 40 caractères), un emoji et un magasin par défaut facultatif. L'emoji se choisit dans une grille fixe, 🛒 par défaut.
-- **LST-02.** La page « Mes listes » (NAV-06) et le tiroir des listes (NAV-03) affichent chaque liste avec son nombre d'articles à acheter.
+- **LST-02.** La page d'accueil (NAV-06) et le tiroir des listes (NAV-03) affichent chaque liste avec son nombre d'articles à acheter.
 - **LST-03.** La dernière liste ouverte est mémorisée sur l'appareil et rouverte au lancement.
 - **LST-04.** Une liste peut être créée vide ou à partir d'une liste existante. La copie reprend les articles (au statut catalogue), les sous-rayons et les rangements, sans les membres.
 - **LST-05.** Les réglages d'une liste permettent de modifier nom, emoji et magasin par défaut, de gérer membres, sous-rayons et magasins, et de quitter ou supprimer la liste.
@@ -100,19 +100,19 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 
 ### 4.1 Navigation
 
-- **NAV-01.** Au lancement, l'application ouvre la dernière liste ouverte, en mode préparation. Sinon, elle affiche la page « Mes listes » (NAV-06).
-- **NAV-02.** L'en-tête d'une liste affiche : à gauche, une flèche de retour vers « Mes listes » ; au centre, l'emoji et le nom de la liste suivis d'une flèche vers le bas ; à droite, les avatars des membres et l'icône des réglages.
-- **NAV-03.** Un tap sur le nom ouvre le tiroir des listes, pour changer de liste : toutes les listes du compte. Créer ou rejoindre une liste se fait depuis « Mes listes » (NAV-06). Si le compte n'a qu'une liste, le nom n'est pas suivi d'une flèche et n'ouvre pas de tiroir.
+- **NAV-01.** Au lancement, l'application ouvre la dernière liste ouverte, en mode préparation. Sinon, elle affiche la page d'accueil (NAV-06).
+- **NAV-02.** L'en-tête d'une liste affiche : à gauche, une flèche de retour vers l'accueil ; au centre, l'emoji et le nom de la liste suivis d'une flèche vers le bas ; à droite, les avatars des membres et l'icône des réglages.
+- **NAV-03.** Un tap sur le nom ouvre le tiroir des listes, pour changer de liste : toutes les listes du compte, dans l'ordre de la page d'accueil (NAV-06). Créer ou rejoindre une liste se fait depuis l'accueil (NAV-06). Si le compte n'a qu'une liste, le nom n'est pas suivi d'une flèche et n'ouvre pas de tiroir.
 - **NAV-04.** L'icône des réglages donne accès aux réglages de la liste et, pour les rôles concernés, à la modération et à l'administration. Le profil est accessible par l'avatar du compte (CPT-06).
 - **NAV-05.** Un retour en arrière depuis un tiroir le ferme. Depuis le mode courses, il demande « Quitter les courses ? » sans terminer la session.
-- **NAV-06.** La page « Mes listes » affiche toutes les listes du compte par ordre alphabétique, avec leur emoji, leur nom et leur nombre d'articles à acheter, ainsi que l'avatar du compte (CPT-06). Un bouton « Ajouter une liste », fixé en bas de l'écran, ouvre un tiroir qui propose « Créer une liste » et « Rejoindre une liste » (avec un code). Sans liste, la page invite à créer une liste ou à en rejoindre une.
+- **NAV-06.** La page d'accueil, titrée du nom de l'application, affiche toutes les listes du compte, de la plus récemment active à la moins récente (à égalité, par ordre alphabétique), avec leur emoji, leur nom et leur nombre d'articles à acheter, ainsi que l'avatar du compte (CPT-06). Un bouton « Ajouter une liste », fixé en bas de l'écran, ouvre un tiroir qui propose « Créer une liste » et « Rejoindre une liste » (avec un code). Sans liste, la page invite à créer une liste ou à en rejoindre une. L'activité d'une liste est sa dernière modification par l'un de ses membres : création, nom ou emoji, arrivée ou départ d'un membre, ajout, modification, changement de statut ou retrait d'un article. Ouvrir ou fermer une liste ne change pas son activité.
 
 ### 4.2 Première connexion
 
 - L'utilisateur ouvre un lien d'invitation ou la page de connexion.
 - Il saisit son email, puis clique sur le lien ou saisit le code reçu.
 - S'il est nouveau, il choisit son nom affiché.
-- Il arrive dans la liste à laquelle il a été invité, ou sur la page « Mes listes ».
+- Il arrive dans la liste à laquelle il a été invité, ou sur la page d'accueil.
 - Une bannière discrète propose d'installer l'application sur l'écran d'accueil.
 
 ### 4.3 Préparer la liste
@@ -304,7 +304,7 @@ Note de priorité : l'apprentissage est une évolution, non prioritaire au lance
 
 ### 14.1 Écrans
 
-Connexion, inscription avec code, demande d'accès, mes listes, liste (préparation, courses, réorganiser), tiroir des listes, tiroir d'article, sélecteur de magasin, fiche magasin (disposition, historique, signalement), mon parcours, réglages de la liste, tiroir du compte (profil), file de modération, administration.
+Connexion, inscription avec code, demande d'accès, accueil (listes du compte), liste (préparation, courses, réorganiser), tiroir des listes, tiroir d'article, sélecteur de magasin, fiche magasin (disposition, historique, signalement), mon parcours, réglages de la liste, tiroir du compte (profil), file de modération, administration.
 
 ### 14.2 Mobile
 
@@ -320,7 +320,7 @@ Connexion, inscription avec code, demande d'accès, mes listes, liste (préparat
 
 ### 14.4 Animations et retours
 
-- **UI-07.** Les animations ne bloquent jamais une interaction. Un nouveau tap reste possible pendant toute animation. Seule exception : la transition entre « Mes listes » et une liste (glissement de 300 ms au plus) peut ignorer un tap. Elle n'a jamais lieu en mode courses.
+- **UI-07.** Les animations ne bloquent jamais une interaction. Un nouveau tap reste possible pendant toute animation. Seule exception : la transition entre l'accueil et une liste (glissement de 300 ms au plus) peut ignorer un tap. Elle n'a jamais lieu en mode courses.
 - **UI-08.** Si le système demande moins d'animations, chaque animation est remplacée par un fondu simple.
 - **UI-09.** Coche en mode courses : la case se remplit immédiatement, avec une vibration courte si elle est prise en charge. La ligne se réduit ensuite en pastille qui rejoint le caddie en 350 ms environ, avec un léger rebond, pendant que l'espace libéré se referme. Le badge du caddie grossit puis revient à sa taille.
 - **UI-10.** Annulation sur place : une ligne retirée devient une fine bande « [article] retiré · Annuler » avec une barre de progression de 6 secondes, puis disparaît.

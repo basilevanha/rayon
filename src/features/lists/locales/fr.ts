@@ -1,6 +1,5 @@
 export const lists = {
-  myLists: {
-    title: "Mes listes",
+  home: {
     empty: "Aucune liste pour le moment. Créez-en une ou rejoignez celle d'un proche.",
   },
   actions: {
@@ -10,7 +9,7 @@ export const lists = {
     save: "Enregistrer",
   },
   header: {
-    back: "Retour à mes listes",
+    back: "Retour à l'accueil",
     switchList: "Changer de liste, liste actuelle : {{name}}",
     settings: "Réglages de la liste",
     members: "Membres : {{names}}",

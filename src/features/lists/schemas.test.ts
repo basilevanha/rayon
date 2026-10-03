@@ -49,6 +49,7 @@ describe("listDetailSchema", () => {
       id: "6f1c2b8e-3d4a-4f5b-9c6d-7e8f9a0b1c2d",
       name: "Maison",
       emoji: "🏠",
+      activity_at: "2026-10-03T10:00:00+00:00",
       list_members: [
         {
           user_id: "0b9f8e7d-6c5b-4a39-8281-7f6e5d4c3b2a",

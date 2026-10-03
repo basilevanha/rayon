@@ -10,7 +10,7 @@ import { useDrawerNavigation } from "@/hooks/use-drawer-navigation";
 const iconLink =
   "inline-flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
 
-// NAV-02 : retour vers « Mes listes » à gauche ; au centre, le nom qui ouvre le tiroir
+// NAV-02 : retour vers l'accueil à gauche ; au centre, le nom qui ouvre le tiroir
 // des listes (NAV-03) ; à droite, membres et réglages. Les deux côtés ont la même
 // largeur pour que le titre soit centré sur l'écran.
 export function ListHeader({ list, userId }: { list: ListDetail; userId: string }) {

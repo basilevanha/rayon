@@ -51,6 +51,8 @@ export const listSummarySchema = z.object({
   id: z.uuid(),
   name: z.string(),
   emoji: z.string(),
+  // NAV-06 : dernière modification de la liste par un membre.
+  activity_at: z.string(),
 });
 
 export type ListSummary = z.infer<typeof listSummarySchema>;
