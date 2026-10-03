@@ -23,13 +23,99 @@ export type Database = {
   };
   public: {
     Tables: {
-      [_ in never]: never;
+      app_invitations: {
+        Row: {
+          account_created_at: string | null;
+          code: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          issued_by: string | null;
+          reserved_email: string | null;
+          revoked_at: string | null;
+          used_at: string | null;
+        };
+        Insert: {
+          account_created_at?: string | null;
+          code: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          issued_by?: string | null;
+          reserved_email?: string | null;
+          revoked_at?: string | null;
+          used_at?: string | null;
+        };
+        Update: {
+          account_created_at?: string | null;
+          code?: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          issued_by?: string | null;
+          reserved_email?: string | null;
+          revoked_at?: string | null;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "app_invitations_issued_by_fkey";
+            columns: ["issued_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      app_settings: {
+        Row: {
+          account_cap: number;
+          id: boolean;
+          invitation_quota: number;
+          signup_mode: string;
+        };
+        Insert: {
+          account_cap?: number;
+          id?: boolean;
+          invitation_quota?: number;
+          signup_mode?: string;
+        };
+        Update: {
+          account_cap?: number;
+          id?: boolean;
+          invitation_quota?: number;
+          signup_mode?: string;
+        };
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          created_at: string;
+          display_name: string | null;
+          id: string;
+          role: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_name?: string | null;
+          id: string;
+          role?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string | null;
+          id?: string;
+          role?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      controle_inscription: { Args: { event: Json }; Returns: Json };
+      liberer_inscriptions_non_confirmees: { Args: Record<PropertyKey, never>; Returns: undefined };
     };
     Enums: {
       [_ in never]: never;

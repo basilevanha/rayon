@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/listes/$listId")({
+export const Route = createFileRoute("/_app/listes/$listId")({
   component: ListPlaceholder,
 });
 

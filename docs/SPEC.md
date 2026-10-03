@@ -57,7 +57,7 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 - **ISC-02.** En mode sur invitation, un compte ne se crée qu'avec un code valide : invitation à une liste (INV-01) ou invitation à l'application (ISC-04). Toute autre tentative affiche « L'inscription se fait sur invitation » et un lien vers la demande d'accès.
 - **ISC-03.** Le contrôle est fait côté serveur, au moment de la création du compte, par le hook Supabase « Before User Created ». Le code est transmis avec la demande de connexion. Masquer un bouton dans l'interface ne suffit jamais à bloquer une inscription.
 - **ISC-04.** Une invitation à l'application crée un compte sans liste. Elle est générée par un administrateur, ou par un utilisateur dans la limite de son quota (3 par défaut, réglable). Elle prend la forme d'un lien et d'un code, valable 14 jours, à usage unique et révocable.
-- **ISC-05.** Un code est réservé à l'adresse email qui l'utilise en premier, puis consommé à la création du compte. Un compte existant qui ouvre une invitation à l'application voit « Vous avez déjà un compte ».
+- **ISC-05.** Un code est réservé à l'adresse email qui l'utilise en premier, puis consommé à la création du compte. Un compte existant qui ouvre une invitation à l'application voit « Vous avez déjà un compte ». Le code est consommé à la demande de connexion. Si l'adresse n'est pas confirmée dans les 24 heures, le compte non confirmé est supprimé et le code redevient utilisable jusqu'à son expiration.
 - **ISC-06.** Un plafond global de comptes s'applique (100 par défaut, réglable). Une fois atteint, aucune inscription n'est acceptée, même avec un code valide. Le message indique que les inscriptions sont momentanément complètes.
 - **ISC-07.** Une page publique « Demander un accès » recueille une adresse email et un message facultatif, protégée par un captcha. Une adresse ne peut avoir qu'une demande en attente. Le demandeur reçoit un email de confirmation.
 - **ISC-08.** Un administrateur accepte ou refuse chaque demande depuis l'administration. Une acceptation génère une invitation à l'application et l'envoie par email. Un refus envoie un email neutre.
@@ -263,7 +263,7 @@ Note de priorité : l'apprentissage est une évolution, non prioritaire au lance
 
 ## 11. Contribution et modération
 
-- **CON-01.** Trois rôles : utilisateur, éditeur, administrateur. Les administrateurs nomment les éditeurs.
+- **CON-01.** Trois rôles : utilisateur, éditeur, administrateur. Les administrateurs nomment les éditeurs. Le premier administrateur est désigné par une commande SQL documentée dans le README.
 - **CON-02.** Un magasin non verrouillé se modifie directement par tout utilisateur (modèle wiki). Un magasin verrouillé par un éditeur n'accepte que des suggestions.
 - **CON-03.** Une suggestion porte sur un nouveau magasin, une modification d'informations, une disposition, un nouveau rayon commun ou une fusion de doublons. Elle a un statut : en attente, acceptée ou refusée, avec un motif.
 - **CON-04.** L'auteur d'une suggestion voit son statut dans son profil.

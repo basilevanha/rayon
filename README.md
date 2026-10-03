@@ -30,3 +30,19 @@ If you are developing a production application, we recommend enabling type-aware
 ```
 
 See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+
+## Rayon : désigner le premier administrateur (CON-01)
+
+L'inscription se fait sur invitation (ISC-02). Le premier compte s'inscrit avec un code d'invitation à l'application. En local, le seed fournit `BIENVENUE` : ouvrir `/invitation/BIENVENUE`. Ce compte est ensuite promu administrateur en SQL (Studio local, ou éditeur SQL du projet en production) :
+
+```sql
+update public.profiles
+   set role = 'administrateur'
+ where id = (select id from auth.users where email = 'vous@example.com');
+```
+
+En production, le premier code se crée de la même façon :
+
+```sql
+insert into public.app_invitations (code) values ('CODE-A-CHOISIR');
+```

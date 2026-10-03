@@ -41,9 +41,6 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Chaque feature y branche ses `setMutationDefaults` (OFF-02), avant la restauration du cache.
-export function registerMutationDefaults(_client: QueryClient): void {}
-
 export const persister = createAsyncStoragePersister({
   storage: {
     getItem: (key) => get<string>(key).then((value) => value ?? null),
