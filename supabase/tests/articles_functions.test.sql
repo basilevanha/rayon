@@ -35,7 +35,7 @@ select is(
   (select merged from public.creer_article('aaaaaaaa-0000-0000-0000-000000000001',
     '11111111-0000-0000-0000-000000000001', 'Œufs', (select id from public.rayons where name = 'Œufs'), null)),
   false, 'un rejeu de la même création ne fait rien (OFF-02)');
-select is((select count(*)::int from public.articles), 1, 'le rejeu ne crée pas de doublon');
+select is((select count(*)::int from public.articles where list_id = '11111111-0000-0000-0000-000000000001'), 1, 'le rejeu ne crée pas de doublon');
 select throws_ok($$select public.creer_article(gen_random_uuid(), '11111111-0000-0000-0000-000000000001',
   repeat('x', 81), (select id from public.rayons where name = 'Autre'), null)$$, '23514', null,
   'un nom de plus de 80 caractères est refusé (ART-01)');
@@ -56,9 +56,9 @@ select is(
   row('aaaaaaaa-0000-0000-0000-000000000001'::uuid, true)::text,
   'une création de même nom normalisé renvoie l''article existant (ART-04)');
 reset role;
-select is((select count(*)::int from public.articles), 1, 'aucun doublon n''est créé (TEC-01)');
+select is((select count(*)::int from public.articles where list_id = '11111111-0000-0000-0000-000000000001'), 1, 'aucun doublon n''est créé (TEC-01)');
 select is((select row(status, quantity, rayon_id = (select id from public.rayons where name = 'Œufs'))::text
-  from public.articles),
+  from public.articles where id = 'aaaaaaaa-0000-0000-0000-000000000001'),
   row('a_acheter', 6, true)::text,
   'l''existant passe à acheter, prend la quantité saisie et garde son rayon (OFF-05)');
 
@@ -69,21 +69,21 @@ set local request.jwt.claims = '{"sub": "a1111111-1111-1111-1111-111111111111", 
 select public.creer_article('aaaaaaaa-0000-0000-0000-000000000003',
   '11111111-0000-0000-0000-000000000001', 'Oeufs', (select id from public.rayons where name = 'Œufs'), null);
 reset role;
-select is((select row(status, quantity)::text from public.articles),
+select is((select row(status, quantity)::text from public.articles where id = 'aaaaaaaa-0000-0000-0000-000000000001'),
   row('caddie', 6)::text,
   'un article du caddie y reste, et une quantité vide ne remplace pas la sienne (ART-04, OFF-05)');
-select is((select updated_by from public.articles), 'b2222222-2222-2222-2222-222222222222'::uuid,
+select is((select updated_by from public.articles where id = 'aaaaaaaa-0000-0000-0000-000000000001'), 'b2222222-2222-2222-2222-222222222222'::uuid,
   'une fusion sans changement ne touche pas l''article (COL-02)');
 
 -- Statut (COU-10, COL-04).
-select is((select status_by from public.articles), 'b2222222-2222-2222-2222-222222222222'::uuid,
+select is((select status_by from public.articles where id = 'aaaaaaaa-0000-0000-0000-000000000001'), 'b2222222-2222-2222-2222-222222222222'::uuid,
   'status_by désigne qui a mis l''article au caddie (COL-04)');
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "a1111111-1111-1111-1111-111111111111", "role": "authenticated"}';
 select public.set_status('aaaaaaaa-0000-0000-0000-000000000001', 'caddie');
 update public.articles set quantity = 12;
 reset role;
-select is((select row(status, status_by, updated_by)::text from public.articles),
+select is((select row(status, status_by, updated_by)::text from public.articles where id = 'aaaaaaaa-0000-0000-0000-000000000001'),
   row('caddie', 'b2222222-2222-2222-2222-222222222222'::uuid, 'a1111111-1111-1111-1111-111111111111'::uuid)::text,
   'set_status fixe sans inverser, et une autre modification ne change pas status_by (COU-10, COL-04)');
 
@@ -91,7 +91,7 @@ set local role authenticated;
 set local request.jwt.claims = '{"sub": "a1111111-1111-1111-1111-111111111111", "role": "authenticated"}';
 select public.set_status('aaaaaaaa-0000-0000-0000-000000000001', 'catalogue');
 reset role;
-select is((select row(status, quantity, status_by)::text from public.articles),
+select is((select row(status, quantity, status_by)::text from public.articles where id = 'aaaaaaaa-0000-0000-0000-000000000001'),
   row('catalogue', null::int, 'a1111111-1111-1111-1111-111111111111'::uuid)::text,
   'le retour au catalogue vide la quantité (ART-02)');
 
