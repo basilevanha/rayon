@@ -7,16 +7,16 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
-    plugins: [
-        tanstackRouter({ target: "react", autoCodeSplitting: true }), // avant react()
-        react(),
-        tailwindcss(),
-        VitePWA({ registerType: "prompt" }), // PWA-02 : jamais de mise à jour silencieuse
-    ],
-    resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
-    test: {
-        environment: "jsdom",
-        setupFiles: ["./src/test/setup.ts"],
-        exclude: ["e2e/**", "node_modules/**"],
-    },
+  plugins: [
+    tanstackRouter({ target: "react", autoCodeSplitting: true }), // avant react()
+    react(),
+    tailwindcss(),
+    VitePWA({ registerType: "prompt" }), // PWA-02 : jamais de mise à jour silencieuse
+  ],
+  resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    exclude: ["e2e/**", "node_modules/**"],
+  },
 });
