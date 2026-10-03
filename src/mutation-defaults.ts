@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { registerArticleMutations } from "@/features/articles/mutations";
 import { registerProfileMutations } from "@/features/auth/profile";
 import { registerListMutations } from "@/features/lists/mutations";
 
@@ -6,4 +7,5 @@ import { registerListMutations } from "@/features/lists/mutations";
 export function registerMutationDefaults(client: QueryClient): void {
   registerProfileMutations(client);
   registerListMutations(client);
+  registerArticleMutations(client);
 }

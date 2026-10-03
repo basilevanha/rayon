@@ -24,6 +24,10 @@ export const lists = {
     nameLabel: "Nom de la liste",
     emojiLabel: "Emoji",
     submit: "Créer la liste",
+    sourceLabel: "Contenu",
+    sourceEmpty: "Liste vide",
+    sourceCopy: "Copier {{emoji}} {{name}}",
+    sourceHelp: "Les articles sont copiés au catalogue, sans les membres.",
   },
   join: {
     title: "Rejoindre une liste",
@@ -71,9 +75,8 @@ export const lists = {
     deleteNameLabel: "Nom de la liste",
     deleted: "Liste « {{name}} » supprimée",
   },
-  list: {
-    empty: "Les articles de la liste arriveront ici.",
-  },
+  toBuy_one: "{{count}} article à acheter",
+  toBuy_other: "{{count}} articles à acheter",
   defaultEmoji: "Emoji {{emoji}}",
   validation: {
     nameRequired: "Le nom est obligatoire",

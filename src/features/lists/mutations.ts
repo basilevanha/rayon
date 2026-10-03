@@ -8,9 +8,11 @@ import {
   type ListInvitation,
   type ListSummary,
 } from "@/features/lists/schemas";
+import { articleKeys } from "@/features/articles/queries";
 import { listKeys, sortLists } from "@/features/lists/queries";
 import { i18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
+import { SYNC_SCOPE } from "@/lib/sync-scope";
 
 export { listKeys };
 
@@ -32,6 +34,8 @@ export type CreateListVariables = {
   name: string;
   emoji: string;
   displayName: string | null;
+  // LST-04 : liste dont les articles sont copiés.
+  sourceListId?: string;
 };
 export type UpdateListVariables = { userId: string; listId: string; name: string; emoji: string };
 export type LeaveListVariables = { userId: string; listId: string };
@@ -88,16 +92,22 @@ async function call<T>(request: PromiseLike<{ data: T; error: unknown }>): Promi
   return data;
 }
 
-// OFF-02 : rejouées une à une, dans l'ordre (ex. créer puis renommer hors ligne).
-const LIST_SCOPE = { id: "lists" };
-
 // OFF-02 : enregistré avant la restauration du cache, pour rejouer les mutations en attente.
 export function registerListMutations(client: QueryClient): void {
   // LST-01. L'id vient de l'appareil : la liste existe à l'écran avant le serveur.
   client.setMutationDefaults(listMutationKeys.create, {
-    scope: LIST_SCOPE,
-    mutationFn: ({ listId, name, emoji }: CreateListVariables) =>
-      call(supabase.rpc("creer_liste", { p_id: listId, p_name: name, p_emoji: emoji })),
+    scope: SYNC_SCOPE,
+    mutationFn: ({ listId, name, emoji, sourceListId }: CreateListVariables) =>
+      call(
+        sourceListId
+          ? supabase.rpc("copier_liste", {
+              p_source_id: sourceListId,
+              p_id: listId,
+              p_name: name,
+              p_emoji: emoji,
+            })
+          : supabase.rpc("creer_liste", { p_id: listId, p_name: name, p_emoji: emoji }),
+      ),
     onMutate: async ({ userId, listId, name, emoji, displayName }: CreateListVariables) => {
       const snapshot = await takeSnapshot(client, userId, listId);
       // NAV-06 : une liste créée est la plus récemment active.
@@ -113,13 +123,17 @@ export function registerListMutations(client: QueryClient): void {
     },
     onError: (error, { userId, listId }: CreateListVariables, context) =>
       restoreSnapshot(client, userId, listId, context, error),
-    onSettled: (_data, _error, { userId, listId }: CreateListVariables) =>
-      invalidate(client, userId, listId),
+    // LST-04 : les articles copiés sont créés par le serveur.
+    onSettled: (_data, _error, { userId, listId, sourceListId }: CreateListVariables) =>
+      Promise.all([
+        invalidate(client, userId, listId),
+        sourceListId ? client.invalidateQueries({ queryKey: articleKeys.all(userId) }) : undefined,
+      ]),
   });
 
   // LST-05 : nom et emoji.
   client.setMutationDefaults(listMutationKeys.update, {
-    scope: LIST_SCOPE,
+    scope: SYNC_SCOPE,
     mutationFn: ({ listId, name, emoji }: UpdateListVariables) =>
       call(supabase.from("lists").update({ name, emoji }).eq("id", listId)),
     onMutate: async ({ userId, listId, name, emoji }: UpdateListVariables) => {
@@ -147,7 +161,7 @@ export function registerListMutations(client: QueryClient): void {
 
   // LST-07, LST-08 : le serveur transfère le rôle ou supprime la liste.
   client.setMutationDefaults(listMutationKeys.leave, {
-    scope: LIST_SCOPE,
+    scope: SYNC_SCOPE,
     mutationFn: ({ listId }: LeaveListVariables) =>
       call(supabase.rpc("quitter_liste", { p_list_id: listId })),
     onMutate: async ({ userId, listId }: LeaveListVariables) => {
@@ -165,7 +179,7 @@ export function registerListMutations(client: QueryClient): void {
 
   // LST-06
   client.setMutationDefaults(listMutationKeys.removeMember, {
-    scope: LIST_SCOPE,
+    scope: SYNC_SCOPE,
     mutationFn: ({ listId, memberId }: RemoveMemberVariables) =>
       call(supabase.rpc("retirer_membre", { p_list_id: listId, p_user_id: memberId })),
     onMutate: async ({ listId, memberId }: RemoveMemberVariables) => {
@@ -183,7 +197,7 @@ export function registerListMutations(client: QueryClient): void {
 
   // LST-06
   client.setMutationDefaults(listMutationKeys.delete, {
-    scope: LIST_SCOPE,
+    scope: SYNC_SCOPE,
     mutationFn: ({ listId, name }: DeleteListVariables) =>
       call(supabase.rpc("supprimer_liste", { p_list_id: listId, p_name: name })),
     onMutate: async ({ userId, listId }: DeleteListVariables) => {
@@ -246,7 +260,11 @@ export function registerListMutations(client: QueryClient): void {
     retry: false,
     mutationFn: async (code: string) =>
       z.uuid().parse(await call(supabase.rpc("accepter_invitation", { p_code: code }))),
-    onSuccess: () => client.invalidateQueries({ queryKey: ["lists"] }),
+    onSuccess: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: ["lists"] }),
+        client.invalidateQueries({ queryKey: ["articles"] }),
+      ]),
   });
 
   // INV-02 : rattrape un compte inscrit avec un code de liste sans être revenu par le lien.
@@ -256,7 +274,12 @@ export function registerListMutations(client: QueryClient): void {
     mutationFn: async () =>
       z.array(z.uuid()).parse(await call(supabase.rpc("accepter_invitations_en_attente"))),
     onSuccess: (listIds: string[]) =>
-      listIds.length > 0 ? client.invalidateQueries({ queryKey: ["lists"] }) : undefined,
+      listIds.length > 0
+        ? Promise.all([
+            client.invalidateQueries({ queryKey: ["lists"] }),
+            client.invalidateQueries({ queryKey: ["articles"] }),
+          ])
+        : undefined,
   });
 }
 

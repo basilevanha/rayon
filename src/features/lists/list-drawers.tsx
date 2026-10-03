@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/drawer";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { articlesQueryOptions, countToBuy } from "@/features/articles/queries";
 import { profileQueryOptions } from "@/features/auth/profile";
 import { useDrawerNavigation, type DrawerName } from "@/hooks/use-drawer-navigation";
 import { EmojiPicker } from "@/features/lists/emoji-picker";
@@ -26,6 +27,7 @@ import {
   listJoinCodeSchema,
   listNameSchema,
 } from "@/features/lists/schemas";
+import { ToBuyCount } from "@/features/lists/to-buy-count";
 import { useOnline } from "@/hooks/use-online";
 
 // UI-03 : tiroirs qui montent du bas de l'écran, pilotés par l'URL (NAV-05).
@@ -93,6 +95,9 @@ function AddListDrawerContent() {
 function ListsDrawerContent({ userId }: { userId: string }) {
   const { t } = useTranslation("lists");
   const { data: lists } = useQuery(listsQueryOptions(userId));
+  const { data: articles } = useQuery(articlesQueryOptions(userId));
+  // LST-02 : rien tant que les articles ne sont pas chargés, plutôt qu'un faux 0.
+  const toBuy = articles && countToBuy(articles);
 
   return (
     <DrawerContent>
@@ -112,7 +117,8 @@ function ListsDrawerContent({ userId }: { userId: string }) {
             <span aria-hidden className="text-xl">
               {list.emoji}
             </span>
-            <span className="truncate">{list.name}</span>
+            <span className="min-w-0 flex-1 truncate">{list.name}</span>
+            {toBuy && <ToBuyCount count={toBuy.get(list.id) ?? 0} />}
           </Link>
         ))}
       </nav>
@@ -120,11 +126,12 @@ function ListsDrawerContent({ userId }: { userId: string }) {
   );
 }
 
-// LST-01, LST-04 (création vide ; la copie arrivera avec les articles).
+// LST-01, LST-04 : liste vide, ou copie des articles d'une liste existante.
 function CreateListDrawerContent({ userId }: { userId: string }) {
   const { t } = useTranslation("lists");
   const navigate = useNavigate();
   const { data: profile } = useQuery(profileQueryOptions(userId));
+  const { data: lists = [] } = useQuery(listsQueryOptions(userId));
   const createList = useCreateList();
   const setLastListId = useLastListStore((state) => state.setLastListId);
   const [error, setError] = useState<string>();
@@ -138,12 +145,14 @@ function CreateListDrawerContent({ userId }: { userId: string }) {
       return;
     }
     const listId = crypto.randomUUID();
+    const source = String(form.get("source") ?? "");
     createList.mutate({
       userId,
       listId,
       name: name.data,
       emoji: listEmojiSchema.parse(form.get("emoji")),
       displayName: profile?.display_name ?? null,
+      sourceListId: lists.some((l) => l.id === source) ? source : undefined,
     });
     setLastListId(listId);
     void navigate({ to: "/listes/$listId", params: { listId }, replace: true });
@@ -169,6 +178,25 @@ function CreateListDrawerContent({ userId }: { userId: string }) {
           <FieldError>{error}</FieldError>
         </Field>
         <EmojiPicker defaultValue={DEFAULT_LIST_EMOJI} />
+        {lists.length > 0 && (
+          <Field>
+            <FieldLabel htmlFor="list-source">{t("create.sourceLabel")}</FieldLabel>
+            <select
+              id="list-source"
+              name="source"
+              defaultValue=""
+              className="h-11 rounded-lg border border-input bg-background px-3 text-base focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            >
+              <option value="">{t("create.sourceEmpty")}</option>
+              {lists.map((list) => (
+                <option key={list.id} value={list.id}>
+                  {t("create.sourceCopy", { emoji: list.emoji, name: list.name })}
+                </option>
+              ))}
+            </select>
+            <FieldDescription>{t("create.sourceHelp")}</FieldDescription>
+          </Field>
+        )}
         <Button type="submit" className="h-11">
           {t("create.submit")}
         </Button>

@@ -371,7 +371,7 @@ export type Database = {
           p_id: string;
           p_list_id: string;
           p_name: string;
-          p_quantity: number;
+          p_quantity?: number;
           p_rayon_id: string;
         };
         Returns: {
