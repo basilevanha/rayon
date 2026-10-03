@@ -342,7 +342,7 @@ Connexion, inscription avec code, demande d'accès, accueil sans liste, liste (p
 ### 16.1 Stack
 
 - **Socle** : Vite, React, TypeScript strict, pnpm, TanStack Router.
-- **Interface** : Tailwind v4, shadcn/ui, lucide-react, Sonner, Vaul, Motion, dnd-kit.
+- **Interface** : Tailwind v4, shadcn/ui, lucide-react, Sonner, Vaul, Motion, dnd-kit. i18next pour les textes d'interface, centralisés par espace de noms, en français seul.
 - **Données** : Supabase (Postgres, Auth, Realtime), TanStack Query en mode hors ligne d'abord avec cache persisté dans IndexedDB, Zustand persisté pour l'état local, Zod.
 - **Recherche** : Fuse.js côté client pour les articles. Recherche de magasins côté serveur (pg_trgm et distance géographique).
 - **PWA** : vite-plugin-pwa (Workbox).
@@ -405,3 +405,4 @@ Ces pistes ne sont pas des exigences. Elles orientent les choix techniques pour 
 - Suggérer un rangement avant la première visite, à partir des rangements agrégés de façon anonyme par nom d'article.
 - Proposer « Appliquer à tous les magasins de même nom » lors d'un déplacement d'article.
 - Enseignes et cartes de fidélité.
+- Multilingue : les textes d'interface sont déjà centralisés par espace de noms (i18next). Une langue s'ajoute sans toucher aux composants.

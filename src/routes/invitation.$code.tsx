@@ -1,4 +1,5 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { invitationCodeSchema } from "@/features/auth/schemas";
 import { supabase } from "@/lib/supabase";
 
@@ -25,11 +26,12 @@ export const Route = createFileRoute("/invitation/$code")({
 });
 
 function AlreadyRegistered() {
+  const { t } = useTranslation(["auth", "common"]);
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-xl font-semibold">Vous avez déjà un compte</h1>
+      <h1 className="text-xl font-semibold">{t("invitation.alreadyRegistered")}</h1>
       <Link to="/" className="inline-flex min-h-11 items-center underline">
-        Ouvrir Rayon
+        {t("common:app.open")}
       </Link>
     </main>
   );

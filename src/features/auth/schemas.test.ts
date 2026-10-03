@@ -5,14 +5,21 @@ import {
   invitationCodeSchema,
   otpSchema,
 } from "@/features/auth/schemas";
+import { i18n } from "@/lib/i18n";
+
+function firstMessage(result: { success: boolean; error?: { issues: { message: string }[] } }) {
+  return result.error?.issues[0]?.message;
+}
 
 describe("emailSchema", () => {
   it("trims and lowercases a valid email", () => {
     expect(emailSchema.parse("  Alice@Example.COM ")).toBe("alice@example.com");
   });
 
-  it("rejects an invalid email", () => {
-    expect(emailSchema.safeParse("alice").success).toBe(false);
+  it("rejects an invalid email with a translated message", () => {
+    expect(firstMessage(emailSchema.safeParse("alice"))).toBe(
+      i18n.t("auth:validation.invalidEmail"),
+    );
   });
 });
 
@@ -22,7 +29,7 @@ describe("otpSchema", () => {
   });
 
   it("rejects anything else", () => {
-    expect(otpSchema.safeParse("12345").success).toBe(false);
+    expect(firstMessage(otpSchema.safeParse("12345"))).toBe(i18n.t("auth:validation.otpFormat"));
     expect(otpSchema.safeParse("12345a").success).toBe(false);
   });
 });
@@ -34,8 +41,12 @@ describe("displayNameSchema (CPT-04)", () => {
   });
 
   it("rejects empty or too long names", () => {
-    expect(displayNameSchema.safeParse("   ").success).toBe(false);
-    expect(displayNameSchema.safeParse("a".repeat(31)).success).toBe(false);
+    expect(firstMessage(displayNameSchema.safeParse("   "))).toBe(
+      i18n.t("auth:validation.displayNameRequired"),
+    );
+    expect(firstMessage(displayNameSchema.safeParse("a".repeat(31)))).toBe(
+      i18n.t("auth:validation.displayNameTooLong"),
+    );
   });
 });
 

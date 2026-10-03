@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
@@ -24,10 +25,11 @@ export const Route = createFileRoute("/connexion")({
 function LoginPage() {
   const { invitation } = Route.useSearch();
   const [email, setEmail] = useState<string | null>(null);
+  const { t } = useTranslation(["auth", "common"]);
 
   return (
     <main className="flex flex-1 flex-col justify-center gap-6 p-6">
-      <h1 className="text-2xl font-semibold">Connexion à Rayon</h1>
+      <h1 className="text-2xl font-semibold">{t("login.title")}</h1>
       {email === null ? (
         <EmailStep invitation={invitation} onSent={setEmail} />
       ) : (
@@ -44,6 +46,7 @@ function EmailStep({
   invitation: string | undefined;
   onSent: (email: string) => void;
 }) {
+  const { t } = useTranslation(["auth", "common"]);
   const [fieldError, setFieldError] = useState<string>();
   const send = useMutation({
     mutationFn: async (email: string) => {
@@ -80,7 +83,7 @@ function EmailStep({
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       <Field data-invalid={fieldError ? true : undefined}>
-        <FieldLabel htmlFor="email">Adresse email</FieldLabel>
+        <FieldLabel htmlFor="email">{t("login.emailLabel")}</FieldLabel>
         <Input
           id="email"
           name="email"
@@ -91,25 +94,27 @@ function EmailStep({
           className="h-11"
           aria-invalid={fieldError ? true : undefined}
         />
-        {invitation && <FieldDescription>Invitation {invitation}</FieldDescription>}
+        {invitation && (
+          <FieldDescription>{t("login.invitation", { code: invitation })}</FieldDescription>
+        )}
         <FieldError>{fieldError}</FieldError>
       </Field>
       <div aria-live="polite">
         {sendError && (
           <p className="text-sm text-destructive">
-            {sendError.message}
+            {t(sendError.messageKey)}
             {sendError.requestAccess && (
               // ISC-02 : la page de demande d'accès arrive avec ISC-07.
               <>
                 {" · "}
-                <span className="underline">Demander un accès</span>
+                <span className="underline">{t("login.requestAccess")}</span>
               </>
             )}
           </p>
         )}
       </div>
       <Button type="submit" className="h-11 w-full" disabled={send.isPending}>
-        Recevoir le lien de connexion
+        {t("login.sendLink")}
       </Button>
     </form>
   );
@@ -124,6 +129,7 @@ function CodeStep({
   invitation: string | undefined;
   onBack: () => void;
 }) {
+  const { t } = useTranslation(["auth", "common"]);
   const navigate = useNavigate();
   const [fieldError, setFieldError] = useState<string>();
   const verify = useMutation({
@@ -148,15 +154,14 @@ function CodeStep({
     verify.mutate(parsed.data);
   }
 
-  const error = fieldError ?? (verify.error ? authErrorMessage(verify.error).message : undefined);
+  const error =
+    fieldError ?? (verify.error ? t(authErrorMessage(verify.error).messageKey) : undefined);
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">
-        Un email a été envoyé à {email}. Touchez le lien qu'il contient, ou saisissez le code reçu.
-      </p>
+      <p className="text-sm text-muted-foreground">{t("login.emailSent", { email })}</p>
       <Field data-invalid={error ? true : undefined}>
-        <FieldLabel htmlFor="code">Code reçu par email</FieldLabel>
+        <FieldLabel htmlFor="code">{t("login.codeLabel")}</FieldLabel>
         <Input
           id="code"
           name="code"
@@ -170,10 +175,10 @@ function CodeStep({
         <FieldError>{error}</FieldError>
       </Field>
       <Button type="submit" className="h-11 w-full" disabled={verify.isPending}>
-        Se connecter
+        {t("login.submitCode")}
       </Button>
       <Button type="button" variant="ghost" className="h-11 w-full" onClick={onBack}>
-        Changer d'adresse email
+        {t("login.changeEmail")}
       </Button>
     </form>
   );

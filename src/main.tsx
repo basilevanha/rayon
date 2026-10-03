@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "@tanstack/react-router";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import "./index.css";
+import "@/lib/i18n";
 import { CACHE_MAX_AGE, persister, queryClient } from "@/lib/query-client";
 import { supabase } from "@/lib/supabase";
 import { registerMutationDefaults } from "./mutation-defaults";
