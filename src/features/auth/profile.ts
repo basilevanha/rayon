@@ -10,16 +10,23 @@ const profileSchema = z.object({
 
 export type Profile = z.infer<typeof profileSchema>;
 
+// Session valide pour un compte supprimé : rien ne peut s'y enregistrer.
+export class AccountNotFoundError extends Error {
+  constructor() {
+    super("account_not_found");
+    this.name = "AccountNotFoundError";
+  }
+}
+
 export const profileQueryOptions = (userId: string) =>
   queryOptions({
     queryKey: ["profile", userId],
+    retry: (failureCount, error) => !(error instanceof AccountNotFoundError) && failureCount < 2,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, display_name, role")
-        .eq("id", userId)
-        .single();
+      // Le rôle (CON-01) ne se lit que pour son propre compte, via mon_profil().
+      const { data, error } = await supabase.rpc("mon_profil").maybeSingle();
       if (error) throw error;
+      if (data === null) throw new AccountNotFoundError();
       return profileSchema.parse(data);
     },
   });

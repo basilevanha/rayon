@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -9,9 +9,25 @@ import { Input } from "@/components/ui/input";
 import { authErrorMessage } from "@/features/auth/errors";
 import { emailSchema, invitationCodeSchema, otpSchema } from "@/features/auth/schemas";
 import { getAuthState } from "@/features/auth/session";
+import { listJoinCodeSchema } from "@/features/lists/schemas";
 import { supabase } from "@/lib/supabase";
 
-const searchSchema = z.object({ invitation: invitationCodeSchema.optional().catch(undefined) });
+// invitation : invitation à l'application (ISC-04) ; rejoindre : invitation à une liste (INV-02).
+const searchSchema = z.object({
+  invitation: invitationCodeSchema.optional().catch(undefined),
+  rejoindre: listJoinCodeSchema.optional().catch(undefined),
+});
+
+// typed : code saisi après un refus (ISC-02), sans savoir s'il vient d'une liste.
+type Invitation = { code: string; kind: "app" | "list" | "typed" } | undefined;
+
+// Page où revenir après connexion : elle traite le code reçu.
+function invitationReturnPath(invitation: Invitation): string {
+  // Un code de liste saisi est rattrapé à la connexion (accepter_invitations_en_attente).
+  if (!invitation || invitation.kind === "typed") return "/";
+  const code = encodeURIComponent(invitation.code);
+  return invitation.kind === "list" ? `/rejoindre/${code}` : `/invitation/${code}`;
+}
 
 export const Route = createFileRoute("/connexion")({
   validateSearch: searchSchema,
@@ -23,15 +39,29 @@ export const Route = createFileRoute("/connexion")({
 
 // CPT-01 : connexion sans mot de passe, par lien ou par code à 6 chiffres.
 function LoginPage() {
-  const { invitation } = Route.useSearch();
+  const search = Route.useSearch();
+  const [typedCode, setTypedCode] = useState<string>();
+  const invitation: Invitation = typedCode
+    ? { code: typedCode, kind: "typed" }
+    : search.rejoindre
+      ? { code: search.rejoindre, kind: "list" }
+      : search.invitation
+        ? { code: search.invitation, kind: "app" }
+        : undefined;
   const [email, setEmail] = useState<string | null>(null);
-  const { t } = useTranslation(["auth", "common"]);
+  const { t } = useTranslation(["auth", "common", "lists"]);
 
   return (
     <main className="flex flex-1 flex-col justify-center gap-6 p-6">
       <h1 className="text-2xl font-semibold">{t("login.title")}</h1>
       {email === null ? (
-        <EmailStep invitation={invitation} onSent={setEmail} />
+        <EmailStep
+          invitation={invitation}
+          onSent={(sentEmail, code) => {
+            setTypedCode(code);
+            setEmail(sentEmail);
+          }}
+        />
       ) : (
         <CodeStep email={email} invitation={invitation} onBack={() => setEmail(null)} />
       )}
@@ -43,39 +73,46 @@ function EmailStep({
   invitation,
   onSent,
 }: {
-  invitation: string | undefined;
-  onSent: (email: string) => void;
+  invitation: Invitation;
+  onSent: (email: string, typedCode: string | undefined) => void;
 }) {
-  const { t } = useTranslation(["auth", "common"]);
+  const { t } = useTranslation(["auth", "common", "lists"]);
   const [fieldError, setFieldError] = useState<string>();
+  // ISC-02 : « Déjà une invitation ? » affiche le champ du code.
+  const [askCode, setAskCode] = useState(false);
+  const codeInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (askCode) codeInput.current?.focus();
+  }, [askCode]);
   const send = useMutation({
-    mutationFn: async (email: string) => {
+    mutationFn: async ({ email, typedCode }: { email: string; typedCode?: string }) => {
+      const used: Invitation = typedCode ? { code: typedCode, kind: "typed" } : invitation;
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: true,
-          data: invitation ? { invitation_code: invitation } : undefined,
-          // Après connexion, la page d'invitation détecte un compte existant (ISC-05).
-          emailRedirectTo: invitation
-            ? `${window.location.origin}/invitation/${encodeURIComponent(invitation)}`
-            : window.location.origin,
+          data: used ? { invitation_code: used.code } : undefined,
+          // Après connexion, la page d'invitation détecte un compte existant (ISC-05)
+          // ou ajoute le compte à la liste (INV-02).
+          emailRedirectTo: `${window.location.origin}${invitationReturnPath(used)}`,
         },
       });
       if (error) throw error;
-      return email;
     },
-    onSuccess: onSent,
+    onSuccess: (_data, { email, typedCode }) => onSent(email, typedCode),
   });
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const parsed = emailSchema.safeParse(new FormData(event.currentTarget).get("email"));
+    const form = new FormData(event.currentTarget);
+    const parsed = emailSchema.safeParse(form.get("email"));
     if (!parsed.success) {
       setFieldError(parsed.error.issues[0]?.message);
       return;
     }
     setFieldError(undefined);
-    send.mutate(parsed.data);
+    const typedCode = askCode ? invitationCodeSchema.safeParse(form.get("invitationCode")) : null;
+    send.mutate({ email: parsed.data, typedCode: typedCode?.success ? typedCode.data : undefined });
   }
 
   const sendError = send.error ? authErrorMessage(send.error) : undefined;
@@ -95,14 +132,30 @@ function EmailStep({
           aria-invalid={fieldError ? true : undefined}
         />
         {invitation && (
-          <FieldDescription>{t("login.invitation", { code: invitation })}</FieldDescription>
+          <FieldDescription>{t("login.invitation", { code: invitation.code })}</FieldDescription>
         )}
         <FieldError>{fieldError}</FieldError>
       </Field>
+      {askCode && (
+        <Field>
+          <FieldLabel htmlFor="invitationCode">{t("login.invitationCodeLabel")}</FieldLabel>
+          <Input
+            id="invitationCode"
+            name="invitationCode"
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            required
+            ref={codeInput}
+            className="h-11 uppercase"
+          />
+        </Field>
+      )}
       <div aria-live="polite">
         {sendError && (
           <p className="text-sm text-destructive">
             {t(sendError.messageKey)}
+            {sendError.askNewLink && ` ${t("lists:errors.askNewLink")}`}
             {sendError.requestAccess && (
               // ISC-02 : la page de demande d'accès arrive avec ISC-07.
               <>
@@ -111,6 +164,16 @@ function EmailStep({
               </>
             )}
           </p>
+        )}
+        {sendError?.requestAccess && !askCode && (
+          <Button
+            type="button"
+            variant="link"
+            className="h-11 px-0"
+            onClick={() => setAskCode(true)}
+          >
+            {t("login.haveInvitation")}
+          </Button>
         )}
       </div>
       <Button type="submit" className="h-11 w-full" disabled={send.isPending}>
@@ -126,10 +189,10 @@ function CodeStep({
   onBack,
 }: {
   email: string;
-  invitation: string | undefined;
+  invitation: Invitation;
   onBack: () => void;
 }) {
-  const { t } = useTranslation(["auth", "common"]);
+  const { t } = useTranslation(["auth", "common", "lists"]);
   const navigate = useNavigate();
   const [fieldError, setFieldError] = useState<string>();
   const verify = useMutation({
@@ -137,10 +200,7 @@ function CodeStep({
       const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
       if (error) throw error;
     },
-    onSuccess: () =>
-      invitation
-        ? navigate({ to: "/invitation/$code", params: { code: invitation } })
-        : navigate({ to: "/" }),
+    onSuccess: () => navigate({ to: invitationReturnPath(invitation) }),
   });
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {

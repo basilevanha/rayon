@@ -10,6 +10,8 @@ export const auth = {
     submitCode: "Se connecter",
     changeEmail: "Changer d'adresse email",
     requestAccess: "Demander un accès",
+    haveInvitation: "Déjà une invitation ?",
+    invitationCodeLabel: "Code d'invitation",
   },
   welcome: {
     title: "Bienvenue",
@@ -18,6 +20,18 @@ export const auth = {
   },
   invitation: {
     alreadyRegistered: "Vous avez déjà un compte",
+  },
+  account: {
+    open: "Mon compte",
+    title: "Mon compte",
+    displayNameLabel: "Nom affiché",
+    saveName: "Enregistrer le nom",
+    saved: "Nom enregistré",
+    emailLabel: "Adresse email",
+    signOut: "Se déconnecter",
+    signOutTitle: "Se déconnecter ?",
+    signOutPending_one: "{{count}} modification non envoyée sera perdue.",
+    signOutPending_other: "{{count}} modifications non envoyées seront perdues.",
   },
   validation: {
     invalidEmail: "Adresse email invalide",

@@ -6,10 +6,12 @@ describe("authErrorMessage", () => {
     expect(authErrorMessage({ message: "inscription_sur_invitation" })).toEqual({
       messageKey: "auth:errors.signupByInvitation",
       requestAccess: true,
+      askNewLink: false,
     });
     expect(authErrorMessage({ message: "code_invalide" })).toEqual({
       messageKey: "auth:errors.invalidInvitation",
       requestAccess: true,
+      askNewLink: false,
     });
   });
 
@@ -17,8 +19,24 @@ describe("authErrorMessage", () => {
     expect(authErrorMessage({ message: "inscriptions_completes" })).toEqual({
       messageKey: "auth:errors.signupsFull",
       requestAccess: false,
+      askNewLink: false,
     });
   });
+
+  it.each([
+    ["invitation_expiree", "lists:errors.invitationExpired"],
+    ["invitation_revoquee", "lists:errors.invitationRevoked"],
+    ["invitation_utilisee", "lists:errors.invitationUsed"],
+  ] as const)(
+    "explains a refused list invitation and offers a new link (INV-03): %s",
+    (message, messageKey) => {
+      expect(authErrorMessage({ message })).toEqual({
+        messageKey,
+        requestAccess: false,
+        askNewLink: true,
+      });
+    },
+  );
 
   it("maps an expired or wrong one-time code", () => {
     expect(

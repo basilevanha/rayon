@@ -54,7 +54,7 @@ V1 : inscription uniquement sur invitation. La croissance est volontairement len
 V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes à suivre.
 
 - **ISC-01.** Le mode d'inscription est un réglage de l'application : « sur invitation » (V1) ou « ouvert » (V2). Il se change depuis l'administration, sans déploiement.
-- **ISC-02.** En mode sur invitation, un compte ne se crée qu'avec un code valide : invitation à une liste (INV-01) ou invitation à l'application (ISC-04). Toute autre tentative affiche « L'inscription se fait sur invitation » et un lien vers la demande d'accès.
+- **ISC-02.** En mode sur invitation, un compte ne se crée qu'avec un code valide : invitation à une liste (INV-01) ou invitation à l'application (ISC-04). Toute autre tentative affiche « L'inscription se fait sur invitation », un lien vers la demande d'accès et un lien « Déjà une invitation ? ». Ce dernier affiche un champ pour saisir le code d'une invitation (à l'application ou à une liste) et renvoie la demande de connexion avec ce code.
 - **ISC-03.** Le contrôle est fait côté serveur, au moment de la création du compte, par le hook Supabase « Before User Created ». Le code est transmis avec la demande de connexion. Masquer un bouton dans l'interface ne suffit jamais à bloquer une inscription.
 - **ISC-04.** Une invitation à l'application crée un compte sans liste. Elle est générée par un administrateur, ou par un utilisateur dans la limite de son quota (3 par défaut, réglable). Elle prend la forme d'un lien et d'un code, valable 14 jours, à usage unique et révocable.
 - **ISC-05.** Un code est réservé à l'adresse email qui l'utilise en premier, puis consommé à la création du compte. Un compte existant qui ouvre une invitation à l'application voit « Vous avez déjà un compte ». Le code est consommé à la demande de connexion. Si l'adresse n'est pas confirmée dans les 24 heures, le compte non confirmé est supprimé et le code redevient utilisable jusqu'à son expiration.
@@ -75,22 +75,24 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 - **CPT-03.** Session persistante de longue durée, renouvelée automatiquement.
 - **CPT-04.** Le profil contient un nom affiché (obligatoire, 1 à 30 caractères), visible des membres des listes partagées, et le nombre d'invitations à l'application restantes.
 - **CPT-05.** L'utilisateur peut exporter ses données en JSON et supprimer son compte. La suppression le retire de toutes ses listes (LST-07 et LST-08), supprime ses parcours et anonymise ses contributions aux magasins.
+- **CPT-06.** L'avatar du compte, sur la page « Mes listes », ouvre un tiroir : nom affiché (modifiable), adresse email, nombre d'invitations à l'application restantes et « Se déconnecter ».
+- **CPT-07.** La déconnexion efface les données de l'appareil : cache, file d'attente et dernière liste ouverte. Si des modifications attendent le réseau, une confirmation l'indique : « n modifications non envoyées seront perdues ».
 
 ### 3.4 Listes
 
-- **LST-01.** Un compte peut créer des listes et appartenir à plusieurs listes. Une liste a un nom (1 à 40 caractères), un emoji et un magasin par défaut facultatif.
-- **LST-02.** Le tiroir des listes (NAV-03) affiche chaque liste avec son nombre d'articles à acheter.
+- **LST-01.** Un compte peut créer des listes et appartenir à plusieurs listes. Une liste a un nom (1 à 40 caractères), un emoji et un magasin par défaut facultatif. L'emoji se choisit dans une grille fixe, 🛒 par défaut.
+- **LST-02.** La page « Mes listes » (NAV-06) et le tiroir des listes (NAV-03) affichent chaque liste avec son nombre d'articles à acheter.
 - **LST-03.** La dernière liste ouverte est mémorisée sur l'appareil et rouverte au lancement.
 - **LST-04.** Une liste peut être créée vide ou à partir d'une liste existante. La copie reprend les articles (au statut catalogue), les sous-rayons et les rangements, sans les membres.
 - **LST-05.** Les réglages d'une liste permettent de modifier nom, emoji et magasin par défaut, de gérer membres, sous-rayons et magasins, et de quitter ou supprimer la liste.
-- **LST-06.** Seul le créateur peut supprimer la liste ou retirer un membre. La suppression demande de saisir le nom de la liste.
+- **LST-06.** Seul le créateur peut supprimer la liste ou retirer un membre. La suppression demande de saisir le nom de la liste. Un membre retiré peut revenir avec une nouvelle invitation, créée après son retrait.
 - **LST-07.** Quand le créateur quitte la liste, le rôle passe au membre le plus ancien.
 - **LST-08.** Quand le dernier membre quitte la liste, elle est supprimée après confirmation.
 
 ### 3.5 Invitations à une liste
 
-- **INV-01.** Tout membre peut générer une invitation, sous forme de lien et de code à 6 caractères. Elle est valable 7 jours, à usage unique et révocable.
-- **INV-02.** Le lien ouvre l'écran de connexion, ou l'inscription si la personne n'a pas de compte. Une invitation à une liste vaut autorisation d'inscription (ISC-02), dans la limite du plafond (ISC-06). Le compte est ajouté à la liste après confirmation.
+- **INV-01.** Tout membre peut générer une invitation, sous forme de lien et de code à 6 caractères. Elle est valable 7 jours, à usage unique et révocable. Les codes d'invitation à une liste et à l'application sont uniques ensemble. Les codes générés n'utilisent pas de caractères ambigus (0, O, 1, I) ; un code d'invitation à l'application choisi par un administrateur est libre.
+- **INV-02.** Le lien ouvre l'écran de connexion, ou l'inscription si la personne n'a pas de compte. Une invitation à une liste vaut autorisation d'inscription (ISC-02), dans la limite du plafond (ISC-06). Le compte est ajouté à la liste après confirmation de son adresse email, à sa première connexion.
 - **INV-03.** Une invitation expirée, révoquée ou déjà utilisée affiche un message clair et propose de demander un nouveau lien.
 - **INV-04.** Les membres de la liste voient « [membre] a rejoint la liste » à son arrivée.
 
@@ -98,18 +100,19 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 
 ### 4.1 Navigation
 
-- **NAV-01.** Au lancement, l'application ouvre la dernière liste ouverte, en mode préparation. Sans liste, elle affiche un écran d'accueil avec « Créer une liste » et « Rejoindre avec un code ».
-- **NAV-02.** L'en-tête d'une liste affiche, de gauche à droite : le nom de la liste suivi d'une flèche, les avatars des membres, l'icône des réglages.
-- **NAV-03.** Un tap sur le nom ouvre le tiroir des listes : toutes les listes du compte, « Nouvelle liste » et « Rejoindre avec un code ».
-- **NAV-04.** L'icône des réglages donne accès aux réglages de la liste, au profil et, pour les rôles concernés, à la modération et à l'administration.
+- **NAV-01.** Au lancement, l'application ouvre la dernière liste ouverte, en mode préparation. Sinon, elle affiche la page « Mes listes » (NAV-06).
+- **NAV-02.** L'en-tête d'une liste affiche : à gauche, une flèche de retour vers « Mes listes » ; au centre, l'emoji et le nom de la liste suivis d'une flèche vers le bas ; à droite, les avatars des membres et l'icône des réglages.
+- **NAV-03.** Un tap sur le nom ouvre le tiroir des listes, pour changer de liste : toutes les listes du compte. Créer ou rejoindre une liste se fait depuis « Mes listes » (NAV-06). Si le compte n'a qu'une liste, le nom n'est pas suivi d'une flèche et n'ouvre pas de tiroir.
+- **NAV-04.** L'icône des réglages donne accès aux réglages de la liste et, pour les rôles concernés, à la modération et à l'administration. Le profil est accessible par l'avatar du compte (CPT-06).
 - **NAV-05.** Un retour en arrière depuis un tiroir le ferme. Depuis le mode courses, il demande « Quitter les courses ? » sans terminer la session.
+- **NAV-06.** La page « Mes listes » affiche toutes les listes du compte par ordre alphabétique, avec leur emoji, leur nom et leur nombre d'articles à acheter, ainsi que l'avatar du compte (CPT-06). Un bouton « Ajouter une liste », fixé en bas de l'écran, ouvre un tiroir qui propose « Créer une liste » et « Rejoindre une liste » (avec un code). Sans liste, la page invite à créer une liste ou à en rejoindre une.
 
 ### 4.2 Première connexion
 
 - L'utilisateur ouvre un lien d'invitation ou la page de connexion.
 - Il saisit son email, puis clique sur le lien ou saisit le code reçu.
 - S'il est nouveau, il choisit son nom affiché.
-- Il arrive dans la liste à laquelle il a été invité, ou sur l'écran d'accueil sans liste.
+- Il arrive dans la liste à laquelle il a été invité, ou sur la page « Mes listes ».
 - Une bannière discrète propose d'installer l'application sur l'écran d'accueil.
 
 ### 4.3 Préparer la liste
@@ -301,7 +304,7 @@ Note de priorité : l'apprentissage est une évolution, non prioritaire au lance
 
 ### 14.1 Écrans
 
-Connexion, inscription avec code, demande d'accès, accueil sans liste, liste (préparation, courses, réorganiser), tiroir des listes, tiroir d'article, sélecteur de magasin, fiche magasin (disposition, historique, signalement), mon parcours, réglages de la liste, profil, file de modération, administration.
+Connexion, inscription avec code, demande d'accès, mes listes, liste (préparation, courses, réorganiser), tiroir des listes, tiroir d'article, sélecteur de magasin, fiche magasin (disposition, historique, signalement), mon parcours, réglages de la liste, tiroir du compte (profil), file de modération, administration.
 
 ### 14.2 Mobile
 
@@ -317,7 +320,7 @@ Connexion, inscription avec code, demande d'accès, accueil sans liste, liste (p
 
 ### 14.4 Animations et retours
 
-- **UI-07.** Les animations ne bloquent jamais une interaction. Un nouveau tap reste possible pendant toute animation.
+- **UI-07.** Les animations ne bloquent jamais une interaction. Un nouveau tap reste possible pendant toute animation. Seule exception : la transition entre « Mes listes » et une liste (glissement de 300 ms au plus) peut ignorer un tap. Elle n'a jamais lieu en mode courses.
 - **UI-08.** Si le système demande moins d'animations, chaque animation est remplacée par un fondu simple.
 - **UI-09.** Coche en mode courses : la case se remplit immédiatement, avec une vibration courte si elle est prise en charge. La ligne se réduit ensuite en pastille qui rejoint le caddie en 350 ms environ, avec un léger rebond, pendant que l'espace libéré se referme. Le badge du caddie grossit puis revient à sa taille.
 - **UI-10.** Annulation sur place : une ligne retirée devient une fine bande « [article] retiré · Annuler » avec une barre de progression de 6 secondes, puis disparaît.

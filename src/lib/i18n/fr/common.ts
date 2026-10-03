@@ -5,6 +5,7 @@ export const common = {
     open: "Ouvrir Rayon",
   },
   actions: {
+    cancel: "Annuler",
     continue: "Continuer",
     reload: "Recharger",
     update: "Mettre à jour",

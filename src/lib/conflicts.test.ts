@@ -80,9 +80,7 @@ describe("remoteChangeAlert (COL-03)", () => {
   });
 
   it("reports a quantity change", () => {
-    expect(remoteChangeAlert(base, state({ quantity: 3 }), session)?.kind).toBe(
-      "quantity_changed",
-    );
+    expect(remoteChangeAlert(base, state({ quantity: 3 }), session)?.kind).toBe("quantity_changed");
   });
 
   it("stays silent for my own changes", () => {
@@ -98,8 +96,9 @@ describe("remoteChangeAlert (COL-03)", () => {
   it("stays silent for changes not covered by COL-03", () => {
     expect(remoteChangeAlert(base, state({ status: "caddie" }), session)).toBeNull();
     const catalogue = state({ status: "catalogue" });
-    expect(remoteChangeAlert(catalogue, state({ status: "catalogue", quantity: 2 }), session))
-      .toBeNull();
+    expect(
+      remoteChangeAlert(catalogue, state({ status: "catalogue", quantity: 2 }), session),
+    ).toBeNull();
   });
 });
 

@@ -1,15 +1,21 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useLastListStore } from "@/features/lists/last-list-store";
+import { listsQueryOptions } from "@/features/lists/queries";
 
 export const Route = createFileRoute("/_app/")({
-  component: HomePlaceholder,
+  component: LaunchPage,
 });
 
-function HomePlaceholder() {
-  const { t } = useTranslation();
-  return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <h1 className="text-2xl font-semibold">{t("app.name")}</h1>
-    </main>
-  );
+// NAV-01, LST-03 : rouvre la dernière liste ouverte, sinon « Mes listes ».
+function LaunchPage() {
+  const { auth } = Route.useRouteContext();
+  const lastListId = useLastListStore((state) => state.lastListId);
+  const { data: lists } = useQuery(listsQueryOptions(auth.userId));
+
+  // Avant la première réponse, la dernière liste s'ouvre sans attendre (OFF-01).
+  const reopen = lastListId && (lists === undefined || lists.some((l) => l.id === lastListId));
+
+  if (reopen) return <Navigate to="/listes/$listId" params={{ listId: lastListId }} replace />;
+  return <Navigate to="/listes" replace />;
 }
