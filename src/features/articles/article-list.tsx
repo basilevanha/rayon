@@ -33,13 +33,25 @@ export function useNotNeeded(userId: string, listId: string, articles: readonly 
     removed,
     forget,
     notNeeded(article: Article) {
-      setStatus.mutate({ userId, listId, articleId: article.id, status: "catalogue" });
+      setStatus.mutate({
+        userId,
+        listId,
+        articleId: article.id,
+        status: "catalogue",
+        seenStatus: article.status,
+      });
       setRemoved((prev) => new Map(prev).set(article.id, { article, at: Date.now() }));
     },
     // Le statut se fixe (COU-10) ; la quantité vidée au catalogue (ART-02) est rétablie,
     // sans écraser un nom ou un rayon modifiés entre-temps.
     undo({ article }: Removed) {
-      setStatus.mutate({ userId, listId, articleId: article.id, status: "a_acheter" });
+      setStatus.mutate({
+        userId,
+        listId,
+        articleId: article.id,
+        status: "a_acheter",
+        seenStatus: "catalogue",
+      });
       const current = articles.find((a) => a.id === article.id) ?? article;
       if (article.quantity !== null) {
         updateArticle.mutate({

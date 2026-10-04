@@ -35,15 +35,26 @@ export function uniqueEmail(name: string): string {
   return `${name}-${Date.now()}@e2e.test`;
 }
 
-export async function readOtp(email: string): Promise<string> {
+async function searchMessages(email: string): Promise<{ Snippet: string }[]> {
+  const response = await fetch(
+    `${MAILPIT_URL}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`,
+  );
+  const body = (await response.json()) as { messages: { Snippet: string }[] };
+  return body.messages;
+}
+
+// Nombre d'emails déjà reçus : readOtp attend ensuite le suivant (reconnexion).
+export async function countEmails(email: string): Promise<number> {
+  return (await searchMessages(email)).length;
+}
+
+// Code du plus récent email, une fois que plus de `after` emails sont arrivés.
+export async function readOtp(email: string, after = 0): Promise<string> {
   let otp: string | undefined;
   await expect
     .poll(async () => {
-      const response = await fetch(
-        `${MAILPIT_URL}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`,
-      );
-      const body = (await response.json()) as { messages: { Snippet: string }[] };
-      otp = body.messages[0]?.Snippet.match(/\b\d{6}\b/)?.[0];
+      const messages = await searchMessages(email);
+      otp = messages.length > after ? messages[0]?.Snippet.match(/\b\d{6}\b/)?.[0] : undefined;
       return otp;
     })
     .toBeDefined();

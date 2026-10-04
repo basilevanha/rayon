@@ -132,6 +132,7 @@ function CreateListDrawerContent({ userId }: { userId: string }) {
   const navigate = useNavigate();
   const { data: profile } = useQuery(profileQueryOptions(userId));
   const { data: lists = [] } = useQuery(listsQueryOptions(userId));
+  const { data: articles } = useQuery(articlesQueryOptions(userId));
   const createList = useCreateList();
   const setLastListId = useLastListStore((state) => state.setLastListId);
   const [error, setError] = useState<string>();
@@ -146,13 +147,20 @@ function CreateListDrawerContent({ userId }: { userId: string }) {
     }
     const listId = crypto.randomUUID();
     const source = String(form.get("source") ?? "");
+    const sourceListId = lists.some((l) => l.id === source) ? source : undefined;
     createList.mutate({
       userId,
       listId,
       name: name.data,
       emoji: listEmojiSchema.parse(form.get("emoji")),
       displayName: profile?.display_name ?? null,
-      sourceListId: lists.some((l) => l.id === source) ? source : undefined,
+      sourceListId,
+      // LST-04 : articles de la source connus de l'appareil, copiés sous de nouveaux ids.
+      copies: sourceListId
+        ? (articles ?? [])
+            .filter((a) => a.listId === sourceListId)
+            .map((a) => ({ sourceId: a.id, id: crypto.randomUUID() }))
+        : undefined,
     });
     setLastListId(listId);
     void navigate({ to: "/listes/$listId", params: { listId }, replace: true });

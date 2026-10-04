@@ -5,11 +5,12 @@ import { articleErrorMessage } from "@/features/articles/errors";
 import { articleKeys } from "@/features/articles/queries";
 import type { Article } from "@/features/articles/schemas";
 import { listKeys, sortLists } from "@/features/lists/queries";
-import type { ListSummary } from "@/features/lists/schemas";
+import type { ListDetail, ListSummary } from "@/features/lists/schemas";
 import type { ArticleStatus } from "@/lib/article-status";
 import { mergeDuplicate } from "@/lib/conflicts";
 import { i18n } from "@/lib/i18n";
 import { normalizeName } from "@/lib/normalize";
+import { callAs } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
 import { SYNC_SCOPE } from "@/lib/sync-scope";
 
@@ -30,8 +31,13 @@ export type CreateArticleVariables = Target & {
   rayonId: string;
   quantity: number | null;
 };
-// COU-10 : le statut se fixe, il ne s'inverse jamais.
-export type SetStatusVariables = Target & { articleId: string; status: ArticleStatus };
+// COU-10 : le statut se fixe, il ne s'inverse jamais. OFF-04 : seenStatus est le statut
+// affiché au moment de l'action, pour refuser au rejeu un retrait devenu conflictuel.
+export type SetStatusVariables = Target & {
+  articleId: string;
+  status: ArticleStatus;
+  seenStatus: ArticleStatus;
+};
 // ART-06, ART-07 : nom, quantité et rayon.
 export type UpdateArticleVariables = Target & {
   articleId: string;
@@ -54,9 +60,32 @@ async function takeSnapshot(client: QueryClient, userId: string): Promise<Snapsh
   };
 }
 
+// OFF-04 : « [article] n'a pas été retiré : [membre] l'a mis dans le caddie ».
+type Variables = Target & { articleId?: string; article?: Article };
+
+function errorText(client: QueryClient, error: Error, target: Variables) {
+  const key = articleErrorMessage(error);
+  if (key !== "articles:errors.alreadyInCart") return i18n.t(key);
+  // details : compte qui a mis l'article au caddie (fonction verifier_retrait).
+  const by = z.object({ details: z.uuid() }).safeParse(error).data?.details;
+  const articleId = target.article?.id ?? target.articleId;
+  const name =
+    target.article?.name ??
+    client.getQueryData<Article[]>(articleKeys.all(target.userId))?.find((a) => a.id === articleId)
+      ?.name;
+  const member = client
+    .getQueryData<ListDetail | null>(listKeys.detail(target.listId))
+    ?.members.find((m) => m.userId === by)?.displayName;
+  return i18n.t(key, {
+    name: name ?? i18n.t("articles:errors.thisArticle"),
+    member: member ?? i18n.t("articles:errors.anotherMember"),
+  });
+}
+
 // OFF-02 : un refus au rejeu est toujours signalé, jamais silencieux.
-function restoreSnapshot(client: QueryClient, userId: string, context: unknown, error: Error) {
-  toast.error(i18n.t(articleErrorMessage(error)));
+function restoreSnapshot(client: QueryClient, target: Variables, context: unknown, error: Error) {
+  const { userId } = target;
+  toast.error(errorText(client, error, target));
   const snapshot = context as Snapshot | undefined;
   if (!snapshot) return;
   client.setQueryData(articleKeys.all(userId), snapshot.articles);
@@ -104,12 +133,6 @@ function invalidate(client: QueryClient, userId: string) {
   ]);
 }
 
-async function call<T>(request: PromiseLike<{ data: T; error: unknown }>): Promise<T> {
-  const { data, error } = await request;
-  if (error) throw error;
-  return data;
-}
-
 const createResultSchema = z
   .array(z.object({ article_id: z.uuid(), merged: z.boolean() }))
   .length(1)
@@ -121,9 +144,17 @@ export function registerArticleMutations(client: QueryClient): void {
   // reste au caddie) ; à l'écran comme au serveur, la règle est celle de mergeDuplicate.
   client.setMutationDefaults(articleMutationKeys.create, {
     scope: SYNC_SCOPE,
-    mutationFn: async ({ articleId, listId, name, rayonId, quantity }: CreateArticleVariables) =>
+    mutationFn: async ({
+      userId,
+      articleId,
+      listId,
+      name,
+      rayonId,
+      quantity,
+    }: CreateArticleVariables) =>
       createResultSchema.parse(
-        await call(
+        await callAs(
+          userId,
           supabase.rpc("creer_article", {
             p_id: articleId,
             p_list_id: listId,
@@ -173,16 +204,23 @@ export function registerArticleMutations(client: QueryClient): void {
       if (result.merged && !(context as CreateContext | undefined)?.knownDuplicate)
         toast(i18n.t("search:alreadyInList", { name: name.trim() }));
     },
-    onError: (error, { userId }: CreateArticleVariables, context) =>
-      restoreSnapshot(client, userId, context, error),
+    onError: (error, variables: CreateArticleVariables, context) =>
+      restoreSnapshot(client, variables, context, error),
     onSettled: (_data, _error, { userId }: CreateArticleVariables) => invalidate(client, userId),
   });
 
   // COU-10, ART-02, COL-04 : fixe le statut ; le catalogue vide la quantité.
   client.setMutationDefaults(articleMutationKeys.setStatus, {
     scope: SYNC_SCOPE,
-    mutationFn: ({ articleId, status }: SetStatusVariables) =>
-      call(supabase.rpc("set_status", { p_article_id: articleId, p_status: status })),
+    mutationFn: ({ userId, articleId, status, seenStatus }: SetStatusVariables) =>
+      callAs(
+        userId,
+        supabase.rpc("set_status", {
+          p_article_id: articleId,
+          p_status: status,
+          p_seen_status: seenStatus,
+        }),
+      ),
     onMutate: async (variables: SetStatusVariables) => {
       const { userId, articleId, status } = variables;
       const snapshot = await takeSnapshot(client, userId);
@@ -198,16 +236,17 @@ export function registerArticleMutations(client: QueryClient): void {
       touchList(client, variables);
       return snapshot;
     },
-    onError: (error, { userId }: SetStatusVariables, context) =>
-      restoreSnapshot(client, userId, context, error),
+    onError: (error, variables: SetStatusVariables, context) =>
+      restoreSnapshot(client, variables, context, error),
     onSettled: (_data, _error, { userId }: SetStatusVariables) => invalidate(client, userId),
   });
 
   // ART-06, ART-07 (vue « Défaut » : le rayon de l'article).
   client.setMutationDefaults(articleMutationKeys.update, {
     scope: SYNC_SCOPE,
-    mutationFn: ({ articleId, name, rayonId, quantity }: UpdateArticleVariables) =>
-      call(
+    mutationFn: ({ userId, articleId, name, rayonId, quantity }: UpdateArticleVariables) =>
+      callAs(
+        userId,
         supabase
           .from("articles")
           .update({ name: name.trim(), rayon_id: rayonId, quantity })
@@ -225,20 +264,22 @@ export function registerArticleMutations(client: QueryClient): void {
       touchList(client, variables);
       return snapshot;
     },
-    onError: (error, { userId }: UpdateArticleVariables, context) =>
-      restoreSnapshot(client, userId, context, error),
+    onError: (error, variables: UpdateArticleVariables, context) =>
+      restoreSnapshot(client, variables, context, error),
     onSettled: (_data, _error, { userId }: UpdateArticleVariables) => invalidate(client, userId),
   });
 
   // ART-08 : suppression douce ; la date est fixée par le serveur.
   client.setMutationDefaults(articleMutationKeys.delete, {
     scope: SYNC_SCOPE,
-    mutationFn: ({ article }: DeleteArticleVariables) =>
-      call(
-        supabase
-          .from("articles")
-          .update({ deleted_at: new Date().toISOString() })
-          .eq("id", article.id),
+    // OFF-04 : refusée au rejeu si un autre membre a mis l'article au caddie entre-temps.
+    mutationFn: ({ userId, article }: DeleteArticleVariables) =>
+      callAs(
+        userId,
+        supabase.rpc("supprimer_article", {
+          p_article_id: article.id,
+          p_seen_status: article.status,
+        }),
       ),
     onMutate: async (variables: DeleteArticleVariables) => {
       const { userId, article } = variables;
@@ -247,16 +288,16 @@ export function registerArticleMutations(client: QueryClient): void {
       touchList(client, variables);
       return snapshot;
     },
-    onError: (error, { userId }: DeleteArticleVariables, context) =>
-      restoreSnapshot(client, userId, context, error),
+    onError: (error, variables: DeleteArticleVariables, context) =>
+      restoreSnapshot(client, variables, context, error),
     onSettled: (_data, _error, { userId }: DeleteArticleVariables) => invalidate(client, userId),
   });
 
   // ART-08 : « Annuler ». Refusé si un article de même nom a été créé entre-temps.
   client.setMutationDefaults(articleMutationKeys.restore, {
     scope: SYNC_SCOPE,
-    mutationFn: ({ article }: DeleteArticleVariables) =>
-      call(supabase.from("articles").update({ deleted_at: null }).eq("id", article.id)),
+    mutationFn: ({ userId, article }: DeleteArticleVariables) =>
+      callAs(userId, supabase.from("articles").update({ deleted_at: null }).eq("id", article.id)),
     onMutate: async (variables: DeleteArticleVariables) => {
       const { userId, article } = variables;
       const snapshot = await takeSnapshot(client, userId);
@@ -266,8 +307,8 @@ export function registerArticleMutations(client: QueryClient): void {
       touchList(client, variables);
       return snapshot;
     },
-    onError: (error, { userId }: DeleteArticleVariables, context) =>
-      restoreSnapshot(client, userId, context, error),
+    onError: (error, variables: DeleteArticleVariables, context) =>
+      restoreSnapshot(client, variables, context, error),
     onSettled: (_data, _error, { userId }: DeleteArticleVariables) => invalidate(client, userId),
   });
 }

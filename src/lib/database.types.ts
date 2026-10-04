@@ -88,6 +88,92 @@ export type Database = {
         };
         Relationships: [];
       };
+      article_aliases: {
+        Row: {
+          article_id: string;
+          id: string;
+        };
+        Insert: {
+          article_id: string;
+          id: string;
+        };
+        Update: {
+          article_id?: string;
+          id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "article_aliases_article_id_fkey";
+            columns: ["article_id"];
+            isOneToOne: false;
+            referencedRelation: "articles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      article_store_rayons: {
+        Row: {
+          article_id: string;
+          list_id: string;
+          rayon_id: string;
+          store_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          article_id: string;
+          list_id: string;
+          rayon_id: string;
+          store_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          article_id?: string;
+          list_id?: string;
+          rayon_id?: string;
+          store_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "article_store_rayons_article_id_list_id_fkey";
+            columns: ["article_id", "list_id"];
+            isOneToOne: false;
+            referencedRelation: "articles";
+            referencedColumns: ["id", "list_id"];
+          },
+          {
+            foreignKeyName: "article_store_rayons_list_id_fkey";
+            columns: ["list_id"];
+            isOneToOne: false;
+            referencedRelation: "lists";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "article_store_rayons_rayon_id_fkey";
+            columns: ["rayon_id"];
+            isOneToOne: false;
+            referencedRelation: "rayons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "article_store_rayons_store_id_fkey";
+            columns: ["store_id"];
+            isOneToOne: false;
+            referencedRelation: "stores";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "article_store_rayons_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       articles: {
         Row: {
           created_at: string;
@@ -288,6 +374,49 @@ export type Database = {
           },
         ];
       };
+      list_views: {
+        Row: {
+          list_id: string;
+          store_id: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          list_id: string;
+          store_id?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          list_id?: string;
+          store_id?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "list_views_list_id_fkey";
+            columns: ["list_id"];
+            isOneToOne: false;
+            referencedRelation: "lists";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "list_views_store_id_fkey";
+            columns: ["store_id"];
+            isOneToOne: false;
+            referencedRelation: "stores";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "list_views_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       lists: {
         Row: {
           activity_at: string;
@@ -354,6 +483,84 @@ export type Database = {
         };
         Relationships: [];
       };
+      store_rayon_orders: {
+        Row: {
+          position: number;
+          rayon_id: string;
+          store_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          position: number;
+          rayon_id: string;
+          store_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          position?: number;
+          rayon_id?: string;
+          store_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "store_rayon_orders_rayon_id_fkey";
+            columns: ["rayon_id"];
+            isOneToOne: false;
+            referencedRelation: "rayons";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "store_rayon_orders_store_id_fkey";
+            columns: ["store_id"];
+            isOneToOne: false;
+            referencedRelation: "stores";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "store_rayon_orders_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stores: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          name: string;
+          normalized_name: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id: string;
+          name: string;
+          normalized_name?: never;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          name?: string;
+          normalized_name?: never;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "stores_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -361,9 +568,17 @@ export type Database = {
     Functions: {
       accepter_invitation: { Args: { p_code: string }; Returns: string };
       accepter_invitations_en_attente: { Args: Record<PropertyKey, never>; Returns: string[] };
+      choisir_vue: { Args: { p_list_id: string; p_store_id: string }; Returns: undefined };
       controle_inscription: { Args: { event: Json }; Returns: Json };
       copier_liste: {
-        Args: { p_emoji: string; p_id: string; p_name: string; p_source_id: string };
+        Args: {
+          p_article_ids?: string[];
+          p_emoji: string;
+          p_id: string;
+          p_name: string;
+          p_source_article_ids?: string[];
+          p_source_id: string;
+        };
         Returns: undefined;
       };
       creer_article: {
@@ -388,6 +603,10 @@ export type Database = {
         }[];
       };
       creer_liste: { Args: { p_emoji: string; p_id: string; p_name: string }; Returns: undefined };
+      creer_magasin: {
+        Args: { p_id: string; p_name: string; p_source_store_id?: string };
+        Returns: undefined;
+      };
       est_membre: { Args: { p_list_id: string }; Returns: boolean };
       liberer_inscriptions_non_confirmees: { Args: Record<PropertyKey, never>; Returns: undefined };
       mon_profil: {
@@ -399,12 +618,29 @@ export type Database = {
         }[];
       };
       normaliser_nom: { Args: { p_name: string }; Returns: string };
+      ordonner_rayons: { Args: { p_rayon_ids: string[]; p_store_id: string }; Returns: undefined };
       partage_une_liste: { Args: { p_user_id: string }; Returns: boolean };
+      peut_ecouter: { Args: { p_topic: string }; Returns: boolean };
       quitter_liste: { Args: { p_list_id: string }; Returns: undefined };
+      ranger_article: {
+        Args: { p_article_id: string; p_partout?: boolean; p_rayon_id: string; p_store_id: string };
+        Returns: undefined;
+      };
       retirer_membre: { Args: { p_list_id: string; p_user_id: string }; Returns: undefined };
       revoquer_invitation: { Args: { p_id: string }; Returns: undefined };
-      set_status: { Args: { p_article_id: string; p_status: string }; Returns: undefined };
+      set_status: {
+        Args: { p_article_id: string; p_seen_status?: string; p_status: string };
+        Returns: undefined;
+      };
+      supprimer_article: {
+        Args: { p_article_id: string; p_seen_status?: string };
+        Returns: undefined;
+      };
       supprimer_liste: { Args: { p_list_id: string; p_name: string }; Returns: undefined };
+      verifier_retrait: {
+        Args: { p_seen_status: string; v_article: Database["public"]["Tables"]["articles"]["Row"] };
+        Returns: undefined;
+      };
     };
     Enums: {
       [_ in never]: never;

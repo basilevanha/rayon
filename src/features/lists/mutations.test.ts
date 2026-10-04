@@ -9,9 +9,23 @@ import {
   type RemoveMemberVariables,
 } from "@/features/lists/mutations";
 import type { ListDetail, ListSummary } from "@/features/lists/schemas";
+import { articleKeys } from "@/features/articles/queries";
+import type { Article } from "@/features/articles/schemas";
 import { supabase } from "@/lib/supabase";
 
-vi.mock("@/lib/supabase", () => ({ supabase: { rpc: vi.fn(), from: vi.fn() } }));
+vi.mock("@/lib/supabase", () => ({
+  supabase: {
+    rpc: vi.fn(),
+    from: vi.fn(),
+    // Session du compte de test (USER_ID) : les écritures sont faites en son nom.
+    auth: {
+      getSession: vi.fn(async () => ({
+        data: { session: { user: { id: "1a2b3c4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d" } } },
+        error: null,
+      })),
+    },
+  },
+}));
 
 const rpc = vi.mocked(supabase.rpc);
 const from = vi.mocked(supabase.from);
@@ -123,6 +137,53 @@ describe("list mutations (OFF-02)", () => {
       p_id: NEW_ID,
       p_name: "Vacances",
       p_emoji: "🎉",
+    });
+    resolve();
+    await pending;
+  });
+
+  it("shows the copied articles at once, under the ids made by the device (LST-04, OFF-02)", async () => {
+    const { client, run } = setup();
+    const source: Article = {
+      id: "7a6b5c4d-3e2f-4a1b-8c9d-0e1f2a3b4c5d",
+      listId: LIST_ID,
+      name: "Lait",
+      normalizedName: "lait",
+      rayonId: "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e",
+      status: "a_acheter",
+      statusBy: OTHER_ID,
+      quantity: 2,
+      updatedBy: OTHER_ID,
+      updatedAt: "2026-10-01T10:00:00Z",
+    };
+    client.setQueryData(articleKeys.all(USER_ID), [source]);
+    const copyId = "3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f";
+    const resolve = deferredRpc();
+    const pending = run(listMutationKeys.create, {
+      userId: USER_ID,
+      listId: NEW_ID,
+      name: "Chalet",
+      emoji: "🏕️",
+      displayName: "Alice",
+      sourceListId: LIST_ID,
+      copies: [{ sourceId: source.id, id: copyId }],
+    } satisfies CreateListVariables);
+    await vi.waitFor(() => expect(rpc).toHaveBeenCalled());
+
+    expect(client.getQueryData<Article[]>(articleKeys.all(USER_ID))?.[1]).toMatchObject({
+      id: copyId,
+      listId: NEW_ID,
+      name: "Lait",
+      status: "catalogue",
+      quantity: null,
+    });
+    expect(rpc).toHaveBeenCalledWith("copier_liste", {
+      p_source_id: LIST_ID,
+      p_id: NEW_ID,
+      p_name: "Chalet",
+      p_emoji: "🏕️",
+      p_source_article_ids: [source.id],
+      p_article_ids: [copyId],
     });
     resolve();
     await pending;

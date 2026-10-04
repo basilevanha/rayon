@@ -40,6 +40,9 @@ export const articles = {
   },
   errors: {
     duplicateName: "Un article du même nom existe déjà",
+    alreadyInCart: "{{name}} n'a pas été retiré : {{member}} l'a mis dans le caddie",
+    anotherMember: "un autre membre",
+    thisArticle: "Cet article",
     notFound: "Cet article n'existe plus",
     notMember: "Vous n'êtes plus membre de cette liste",
   },

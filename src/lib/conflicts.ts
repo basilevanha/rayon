@@ -18,13 +18,14 @@ export type RemoteAlert = {
   by: string;
 };
 
-type Stamped = Pick<ArticleState, "updatedAt" | "updatedBy">;
+// updatedBy vide : compte supprimé depuis (on delete set null).
+type Stamped = { updatedAt: string; updatedBy: string | null };
 
 /** Last write wins; equal timestamps are settled by author id (COL-02). */
 export function resolveConcurrent<T extends Stamped>(a: T, b: T): T {
   const diff = Date.parse(a.updatedAt) - Date.parse(b.updatedAt);
   if (diff !== 0) return diff > 0 ? a : b;
-  return b.updatedBy > a.updatedBy ? b : a;
+  return (b.updatedBy ?? "") > (a.updatedBy ?? "") ? b : a;
 }
 
 function isWanted(article: ArticleState | null): boolean {
@@ -81,4 +82,23 @@ export function mergeDuplicate<T extends Pick<ArticleState, "status" | "quantity
     status: existing.status === "catalogue" ? "a_acheter" : existing.status,
     quantity: incoming.quantity ?? existing.quantity,
   };
+}
+
+/**
+ * Applies an article received in real time to the cached ones (COL-01). The newer
+ * version wins (COL-02); a deleted article leaves the cache (ART-08). Returns the same
+ * array when nothing changes.
+ */
+export function mergeRemoteArticle<T extends Stamped & { id: string }>(
+  local: readonly T[],
+  remote: T & { deletedAt: string | null },
+): readonly T[] {
+  const index = local.findIndex((a) => a.id === remote.id);
+  if (remote.deletedAt !== null) {
+    return index === -1 ? local : local.filter((a) => a.id !== remote.id);
+  }
+  if (index === -1) return [...local, remote];
+  const current = local[index];
+  if (resolveConcurrent(current, remote) === current) return local;
+  return local.map((a, i) => (i === index ? remote : a));
 }

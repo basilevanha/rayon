@@ -15,7 +15,19 @@ import type { ListSummary } from "@/features/lists/schemas";
 import { i18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 
-vi.mock("@/lib/supabase", () => ({ supabase: { rpc: vi.fn(), from: vi.fn() } }));
+vi.mock("@/lib/supabase", () => ({
+  supabase: {
+    rpc: vi.fn(),
+    from: vi.fn(),
+    // Session du compte de test (USER_ID) : les écritures sont faites en son nom.
+    auth: {
+      getSession: vi.fn(async () => ({
+        data: { session: { user: { id: "1a2b3c4d-5e6f-4a8b-9c0d-1e2f3a4b5c6d" } } },
+        error: null,
+      })),
+    },
+  },
+}));
 vi.mock("sonner", () => ({ toast: Object.assign(vi.fn(), { error: vi.fn() }) }));
 
 const rpc = vi.mocked(supabase.rpc);
@@ -172,6 +184,7 @@ describe("article mutations (OFF-02)", () => {
       listId: LIST_ID,
       articleId: lait.id,
       status: "catalogue",
+      seenStatus: "a_acheter",
     };
     await run(articleMutationKeys.setStatus, variables);
     await run(articleMutationKeys.setStatus, variables);
@@ -179,11 +192,51 @@ describe("article mutations (OFF-02)", () => {
     expect(rpc).toHaveBeenCalledWith("set_status", {
       p_article_id: lait.id,
       p_status: "catalogue",
+      p_seen_status: "a_acheter",
     });
+  });
+
+  it("explains a removal refused on replay: another member put it in the cart (OFF-04)", async () => {
+    const { client, run, articlesOf } = setup([{ ...lait, status: "a_acheter" }]);
+    client.setQueryData(listKeys.detail(LIST_ID), {
+      ...maison,
+      members: [
+        {
+          userId: USER_ID,
+          joinedAt: "2026-10-01T10:00:00Z",
+          isCreator: true,
+          displayName: "Alice",
+        },
+        {
+          userId: OTHER_ID,
+          joinedAt: "2026-10-02T10:00:00Z",
+          isCreator: false,
+          displayName: "Bob",
+        },
+      ],
+    });
+    rpc.mockResolvedValueOnce({
+      data: null,
+      error: { message: "deja_au_caddie", code: "P0001", details: OTHER_ID },
+    } as never);
+    await expect(
+      run(articleMutationKeys.setStatus, {
+        userId: USER_ID,
+        listId: LIST_ID,
+        articleId: lait.id,
+        status: "catalogue",
+        seenStatus: "a_acheter",
+      } satisfies SetStatusVariables),
+    ).rejects.toBeTruthy();
+    expect(articlesOf()[0].status).toBe("a_acheter");
+    expect(toast.error).toHaveBeenCalledWith(
+      i18n.t("articles:errors.alreadyInCart", { name: "Lait", member: "Bob" }),
+    );
   });
 
   it("deletes softly, then restores (ART-08)", async () => {
     const { run, articlesOf } = setup();
+    rpc.mockResolvedValueOnce({ data: null, error: null } as never);
     const eq = vi.fn().mockResolvedValue({ data: null, error: null });
     const update = vi.fn(() => ({ eq }));
     from.mockReturnValue({ update } as unknown as ReturnType<typeof supabase.from>);
@@ -191,7 +244,10 @@ describe("article mutations (OFF-02)", () => {
 
     await run(articleMutationKeys.delete, variables);
     expect(articlesOf()).toEqual([]);
-    expect(update).toHaveBeenCalledWith({ deleted_at: expect.any(String) });
+    expect(rpc).toHaveBeenCalledWith("supprimer_article", {
+      p_article_id: lait.id,
+      p_seen_status: "catalogue",
+    });
 
     await run(articleMutationKeys.restore, variables);
     expect(articlesOf()).toMatchObject([{ id: lait.id }]);

@@ -34,7 +34,7 @@ const byName = (a: SortArticle, b: SortArticle) => collator.compare(a.name, b.na
  * Store order, or reference order. A rayon missing from the store order (added since,
  * ADM-03) goes right after its nearest reference predecessor (TEC-02).
  */
-function orderRayons(
+export function orderRayons(
   rayons: readonly SortRayon[],
   storeOrder: readonly string[] | null | undefined,
 ): string[] {

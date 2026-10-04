@@ -21,32 +21,39 @@ export const rayonSchema = z
 
 export type Rayon = z.output<typeof rayonSchema>;
 
+const articleRowSchema = z.object({
+  id: z.uuid(),
+  list_id: z.uuid(),
+  name: z.string(),
+  normalized_name: z.string(),
+  rayon_id: z.uuid(),
+  status: articleStatusSchema,
+  status_by: z.uuid().nullable(),
+  quantity: z.number().int().min(1).nullable(),
+  updated_by: z.uuid().nullable(),
+  updated_at: z.string(),
+});
+
+const toArticle = (row: z.infer<typeof articleRowSchema>) => ({
+  id: row.id,
+  listId: row.list_id,
+  name: row.name,
+  normalizedName: row.normalized_name,
+  rayonId: row.rayon_id,
+  status: row.status,
+  statusBy: row.status_by,
+  quantity: row.quantity,
+  updatedBy: row.updated_by,
+  updatedAt: row.updated_at,
+});
+
 // ART-01. Seuls les articles non supprimés sont chargés (ART-08).
-export const articleSchema = z
-  .object({
-    id: z.uuid(),
-    list_id: z.uuid(),
-    name: z.string(),
-    normalized_name: z.string(),
-    rayon_id: z.uuid(),
-    status: articleStatusSchema,
-    status_by: z.uuid().nullable(),
-    quantity: z.number().int().min(1).nullable(),
-    updated_by: z.uuid().nullable(),
-    updated_at: z.string(),
-  })
-  .transform((row) => ({
-    id: row.id,
-    listId: row.list_id,
-    name: row.name,
-    normalizedName: row.normalized_name,
-    rayonId: row.rayon_id,
-    status: row.status,
-    statusBy: row.status_by,
-    quantity: row.quantity,
-    updatedBy: row.updated_by,
-    updatedAt: row.updated_at,
-  }));
+export const articleSchema = articleRowSchema.transform(toArticle);
+
+// COL-01 : article diffusé en temps réel, y compris supprimé.
+export const remoteArticleSchema = articleRowSchema
+  .extend({ deleted_at: z.string().nullable() })
+  .transform((row) => ({ ...toArticle(row), deletedAt: row.deleted_at }));
 
 export type Article = z.output<typeof articleSchema>;
 
