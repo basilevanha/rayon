@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   useDeleteArticle,
   useRestoreArticle,
+  useSetArticleStatus,
   useUpdateArticle,
 } from "@/features/articles/mutations";
 import {
@@ -52,6 +53,7 @@ function ArticleForm(props: ArticleDrawerProps & { article: Article }) {
   const { userId, listId, article, articles, rayons, onClose, onNotNeeded } = props;
   const { t } = useTranslation("articles");
   const updateArticle = useUpdateArticle();
+  const setStatus = useSetArticleStatus();
   const deleteArticle = useDeleteArticle();
   const restoreArticle = useRestoreArticle();
   const [errors, setErrors] = useState<{ name?: string; quantity?: string }>({});
@@ -99,7 +101,13 @@ function ArticleForm(props: ArticleDrawerProps & { article: Article }) {
     onClose();
   }
 
-  // UI-12 : équivalent accessible du glissement « Plus besoin » (PRE-06).
+  // ART-06 : un article du catalogue passe à acheter, comme depuis la recherche (REC-06).
+  function addToList() {
+    setStatus.mutate({ userId, listId, articleId: article.id, status: "a_acheter" });
+    onClose();
+  }
+
+  // ART-06, UI-12 : équivalent accessible du glissement « Plus besoin » (PRE-06).
   function notNeeded() {
     onNotNeeded(article);
     onClose();
@@ -173,6 +181,11 @@ function ArticleForm(props: ArticleDrawerProps & { article: Article }) {
         <Button type="submit" className="h-11">
           {t("drawer.save")}
         </Button>
+        {article.status === "catalogue" && (
+          <Button type="button" variant="outline" className="h-11" onClick={addToList}>
+            {t("drawer.addToList")}
+          </Button>
+        )}
         {article.status === "a_acheter" && (
           <Button type="button" variant="outline" className="h-11" onClick={notNeeded}>
             {t("drawer.notNeeded")}

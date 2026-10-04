@@ -75,7 +75,19 @@ test("ajouter des articles par la recherche, les retirer puis annuler", async ({
     list.getByRole("button", { name: t("articles:sections.all", { count: "1" }) }),
   ).toBeVisible({ timeout: 10_000 });
 
+  // ART-06 : depuis « Tous les articles », le tiroir remet l'article à acheter.
+  await list.getByRole("button", { name: t("articles:sections.all", { count: "1" }) }).click();
+  await list.getByRole("button", { name: t("articles:row.edit", { name: "Lait" }) }).click();
+  await drawer.getByRole("button", { name: t("articles:drawer.addToList") }).click();
+  await expect(drawer).toHaveCount(0);
+  await expect(lait).toBeVisible();
+
   // REC-06 : un tap sur un résultat du catalogue le remet à acheter.
+  await lait.click();
+  await drawer.getByRole("button", { name: t("articles:drawer.notNeeded") }).click();
+  await expect(
+    list.getByRole("button", { name: t("articles:sections.all", { count: "1" }) }),
+  ).toBeVisible({ timeout: 10_000 });
   await search.fill("lait");
   await page.getByRole("button", { name: /^Lait/ }).click();
   await expect(lait).toBeVisible();

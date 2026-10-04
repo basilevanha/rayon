@@ -27,6 +27,7 @@ export const articles = {
     quantityHelp: "Facultative, pour un besoin ponctuel.",
     rayonLabel: "Rayon",
     save: "Enregistrer",
+    addToList: "Ajouter à la liste",
     notNeeded: "Plus besoin",
     delete: "Supprimer l'article",
     deleted: "« {{name}} » supprimé",
