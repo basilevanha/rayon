@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   type ArticleState,
   mergeDuplicate,
+  mergeRemoteArticle,
   needsRemovalConfirmation,
   remoteChangeAlert,
   resolveConcurrent,
@@ -155,5 +156,34 @@ describe("mergeDuplicate (OFF-05, ART-04)", () => {
   it("keeps the existing quantity otherwise", () => {
     const existing = state({ id: "server", quantity: 2 });
     expect(mergeDuplicate(existing, incoming).quantity).toBe(2);
+  });
+});
+
+describe("mergeRemoteArticle (COL-01, COL-02)", () => {
+  const local = [state({ id: "lait", quantity: 1 }), state({ id: "pain" })];
+
+  it("adds an article created by another member", () => {
+    const remote = { ...state({ id: "oeufs" }), deletedAt: null };
+    expect(mergeRemoteArticle(local, remote).map((a) => a.id)).toEqual(["lait", "pain", "oeufs"]);
+  });
+
+  it("replaces an article with a newer remote version", () => {
+    const remote = state({ id: "lait", quantity: 3, updatedAt: "2026-10-03T10:00:05.000Z" });
+    expect(mergeRemoteArticle(local, remote)[0].quantity).toBe(3);
+  });
+
+  it("keeps the local version when the remote one is older (late event)", () => {
+    const remote = state({ id: "lait", quantity: 9, updatedAt: "2026-10-03T09:59:59.000Z" });
+    expect(mergeRemoteArticle(local, remote)).toBe(local);
+  });
+
+  it("removes a deleted article (ART-08)", () => {
+    const remote = state({ id: "pain", deletedAt: "2026-10-03T10:00:05.000Z" });
+    expect(mergeRemoteArticle(local, remote).map((a) => a.id)).toEqual(["lait"]);
+  });
+
+  it("ignores the deletion of an unknown article", () => {
+    const remote = state({ id: "ghost", deletedAt: "2026-10-03T10:00:05.000Z" });
+    expect(mergeRemoteArticle(local, remote)).toBe(local);
   });
 });

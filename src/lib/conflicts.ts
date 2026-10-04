@@ -82,3 +82,22 @@ export function mergeDuplicate<T extends Pick<ArticleState, "status" | "quantity
     quantity: incoming.quantity ?? existing.quantity,
   };
 }
+
+/**
+ * Applies an article received in real time to the cached ones (COL-01). The newer
+ * version wins (COL-02); a deleted article leaves the cache (ART-08). Returns the same
+ * array when nothing changes.
+ */
+export function mergeRemoteArticle<T extends Stamped & { id: string }>(
+  local: readonly T[],
+  remote: T & { deletedAt: string | null },
+): readonly T[] {
+  const index = local.findIndex((a) => a.id === remote.id);
+  if (remote.deletedAt !== null) {
+    return index === -1 ? local : local.filter((a) => a.id !== remote.id);
+  }
+  if (index === -1) return [...local, remote];
+  const current = local[index];
+  if (resolveConcurrent(current, remote) === current) return local;
+  return local.map((a, i) => (i === index ? remote : a));
+}
