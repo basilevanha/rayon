@@ -2,7 +2,7 @@
 
 Nom de code : **Rayon**. Application de listes de courses partagées.
 
-Version 3.1, octobre 2026. Source de vérité du projet. Chaque exigence porte un identifiant (ex. COU-10) à citer dans les plans, commits et tests.
+Version 3.2, octobre 2026. Source de vérité du projet. Chaque exigence porte un identifiant (ex. COU-10) à citer dans les plans, commits et tests.
 
 ## 1. Objet et périmètre
 
@@ -33,7 +33,7 @@ Multilingue (français uniquement), notifications push, unités de mesure, prix 
 - **À acheter** : articles à prendre lors des prochaines courses.
 - **Caddie** : articles cochés pendant la session de courses en cours.
 - **Rayon** : catégorie d'emplacement, choisie dans une liste fixe commune à toute l'application (ex. Produits laitiers). « Autre » est un rayon comme les autres.
-- **Magasin** : point de vente précis (ex. Colruyt Wavre).
+- **Magasin** : point de vente précis, désigné par son nom (ex. Colruyt Wavre).
 - **Ordre de référence** : ordre des rayons défini par l'application, utilisé par la vue « Défaut » et par tout magasin dont l'ordre n'a pas été modifié.
 - **Ordre du magasin** : ordre des rayons dans un magasin, commun à tous les utilisateurs.
 - **Rangement** : rayon d'un article dans un magasin donné, quand il diffère de son rayon. Propre à la liste, partagé par ses membres.
@@ -132,8 +132,8 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 
 ### 4.5 Ajouter un magasin manquant
 
-- Dans le sélecteur de magasin, l'utilisateur ne trouve pas son magasin et touche « Ajouter un magasin ».
-- Il saisit nom et adresse. L'application signale les magasins proches au nom similaire.
+- Dans le sélecteur de vue, l'utilisateur ne trouve pas son magasin et touche « Ajouter un magasin ».
+- Il saisit son nom (ex. « Colruyt Wavre »). L'application signale les magasins au nom proche.
 - Il choisit de partir de l'ordre d'un autre magasin ou de l'ordre de référence.
 - Le magasin est créé et sélectionné.
 
@@ -164,7 +164,7 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 
 - **PRE-01.** L'écran affiche, de haut en bas : l'en-tête (NAV-02), la recherche, la barre d'affichage (PRE-10), les articles dans le caddie s'il n'est pas vide (titrés par le bandeau COL-05 pendant une session d'un autre membre), les articles à acheter, puis une section repliée « Tous les articles (n) » (catalogue). Pendant une saisie, les résultats de la recherche remplacent la barre d'affichage et les articles (la colonne de gauche sur desktop). Sans article à acheter, la section l'indique : « Rien à acheter pour le moment ».
 - **PRE-02.** En affichage par rayon, les rayons suivent l'ordre de la vue sélectionnée : l'ordre du magasin, ou l'ordre de référence pour « Défaut ». Dans un rayon, les articles sont triés par ordre alphabétique, les nombres dans l'ordre naturel (« ×6 » avant « ×12 »).
-- **PRE-03.** Les titres de rayon sont discrets : petite taille, majuscules, couleur atténuée. Le titre du rayon en cours reste collé en haut pendant le défilement. Les rayons vides ne s'affichent pas.
+- **PRE-03.** Les titres de rayon sont discrets : petite taille, majuscules, couleur atténuée. Le titre du rayon en cours reste collé en haut pendant le défilement. Les rayons vides ne s'affichent pas, sauf en mode réorganiser (COU-19).
 - **PRE-04.** « Autre » est un rayon ordinaire : il prend sa place dans l'ordre de la vue, en dernier dans l'ordre de référence.
 - **PRE-05.** Aucune case à cocher n'est affichée dans ce mode.
 - **PRE-06.** Un glissement vers la gauche sur un article à acheter le renvoie au catalogue (« Plus besoin »). L'annulation se fait sur place (UI-10). Le glissement ne supprime jamais un article.
@@ -172,14 +172,14 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 - **PRE-08.** Un bouton fixe en bas d'écran, « Démarrer les courses », rappelle en petit le magasin sélectionné. Il est visible sur mobile uniquement.
 - **PRE-09.** Une carte de proposition d'apprentissage (section 10) peut apparaître en tête de liste. Elle se ferme d'un geste et ne revient pas pour la même proposition.
 - **PRE-10.** Sous la recherche, une barre d'affichage contient : le sélecteur de vue (« Défaut » et les magasins), l'affichage « Par rayon » (titres de rayon, PRE-03) ou « A → Z » (liste à plat, ordre alphabétique), et un menu « ⋯ » qui contient « Organiser les rayons ». Cette action ouvre le mode réorganiser (COU-19 à COU-21) sur la vue sélectionnée.
-- **PRE-11.** La vue sélectionnée est mémorisée par compte et par liste. Une liste qui n'en a pas encore reprend la vue de la dernière liste modifiée par le compte, sinon « Défaut ».
+- **PRE-11.** La vue sélectionnée est mémorisée par compte et par liste. Une liste qui n'en a pas encore reprend la dernière vue choisie par le compte, dans n'importe quelle liste, sinon « Défaut ».
 - **PRE-12.** L'affichage « Par rayon » ou « A → Z » est mémorisé sur l'appareil, pour toutes les listes.
 
 ## 8. Mode courses
 
 ### 8.1 Démarrage et affichage
 
-- **COU-01.** Au démarrage, le magasin de la vue sélectionnée (PRE-11) est présélectionné. Un sélecteur permet d'en choisir un autre : recherche, magasins récents, magasins proches si la géolocalisation est autorisée.
+- **COU-01.** Au démarrage, le magasin de la vue sélectionnée (PRE-11) est présélectionné. Un sélecteur permet d'en choisir un autre : recherche et magasins récents.
 - **COU-02.** Si le caddie n'est pas vide au démarrage, l'application propose « Reprendre » ou « Vider le caddie précédent » (articles renvoyés au catalogue).
 - **COU-03.** Le mode courses est un état local à l'appareil, conservé au rechargement. La session est enregistrée côté serveur (liste, magasin, membre, début, fin).
 - **COU-04.** Le mode est identifiable sans ambiguïté par une couleur d'accent dédiée.
@@ -203,10 +203,10 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 
 ### 8.3 Mode réorganiser
 
-- **COU-19.** Le mode réorganiser s'ouvre depuis « Organiser les rayons » (PRE-10) ou « Réorganiser » (COU-05). Il masque les cases à cocher, affiche des poignées sur les rayons et les articles, et un bouton « OK » pour revenir à l'affichage précédent. Aucune coche n'est possible dans ce mode. Les articles d'un rayon restent dans l'ordre alphabétique.
+- **COU-19.** Le mode réorganiser s'ouvre depuis « Organiser les rayons » (PRE-10) ou « Réorganiser » (COU-05). Il masque les cases à cocher, affiche des poignées sur les rayons et les articles, et un bouton « OK » pour revenir à l'affichage précédent. Aucune coche n'est possible dans ce mode. Il affiche les articles par rayon, y compris les rayons vides (en version compacte), pour pouvoir y déposer un article. Les articles d'un rayon restent dans l'ordre alphabétique.
 - **COU-20.** Deux gestes sont possibles, chacun avec sa portée :
   - déplacer un rayon : modifie l'ordre du magasin, pour tous les utilisateurs (DIS-02). Impossible en vue « Défaut », dont l'ordre est fixe ;
-  - déplacer un article vers un autre rayon : selon ART-07, son rangement dans ce magasin, ou son rayon dans tous les magasins.
+  - déplacer un article vers un autre rayon : son rangement dans le magasin sélectionné, ou son rayon en vue « Défaut » (ART-07). Le changement « Dans tous les magasins » se fait depuis le tiroir d'édition.
 - **COU-21.** Chaque déplacement est confirmé par un message qui en précise la portée, par exemple « Produits laitiers déplacé chez Delhaize Wavre, pour tous » ou « Bananes rangées dans Pommes de terre et oignons chez Delhaize Wavre ».
 
 ### 8.4 Fin de session
@@ -224,10 +224,10 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 
 ### 9.2 Magasins
 
-- **MAG-01.** Un magasin possède un nom, une adresse, une ville, des coordonnées, un statut (ouvert ou fermé) et un identifiant OpenStreetMap facultatif.
-- **MAG-02.** La base est initialisée à partir d'OpenStreetMap (supermarchés en Belgique) et mise à jour périodiquement. L'attribution OpenStreetMap est affichée.
-- **MAG-03.** La recherche de magasin porte sur le nom et la ville, avec la même tolérance que REC-02 et REC-03. Les résultats proches apparaissent en premier si la géolocalisation est autorisée.
-- **MAG-04.** Tout utilisateur peut ajouter un magasin, depuis le sélecteur de vue (PRE-10) ou de magasin (COU-01). Avant validation, l'application affiche les magasins à moins de 500 m, ou au nom similaire dans la même ville, et demande s'il s'agit d'un doublon. Un magasin ajouté est visible de tous.
+- **MAG-01.** Un magasin possède un nom (1 à 60 caractères), qui le désigne avec sa localité (ex. « Colruyt Wavre »). Le nom normalisé (REC-02) est unique. En V1, un magasin ne se renomme ni ne se supprime.
+- **MAG-02.** V2. La base est initialisée à partir d'OpenStreetMap (supermarchés en Belgique) et mise à jour périodiquement. L'attribution OpenStreetMap est affichée. Les magasins gagnent alors adresse, ville, coordonnées et statut (ouvert ou fermé).
+- **MAG-03.** La recherche de magasin porte sur le nom, avec la même tolérance que REC-02 et REC-03. Elle se fait sur l'appareil et fonctionne hors ligne sur les magasins déjà chargés.
+- **MAG-04.** Tout utilisateur peut ajouter un magasin, depuis le sélecteur de vue (PRE-10) ou de magasin (COU-01). Avant validation, l'application affiche les magasins au nom proche et demande s'il s'agit de l'un d'eux. Un nom identique (après normalisation) est refusé. Un magasin ajouté est visible de tous.
 - **MAG-05.** À la création, l'ordre des rayons part de celui d'un autre magasin choisi par l'utilisateur, ou de l'ordre de référence.
 
 ### 9.3 Ordre des rayons d'un magasin
@@ -254,7 +254,7 @@ Note de priorité : l'apprentissage est une évolution, non prioritaire au lance
 
 ## 11. Contribution et modération
 
-En V1, les magasins et l'ordre de leurs rayons sont modifiables par tous, sans modération. Seuls CON-01 (sans le rôle d'éditeur) et CON-08 (limite de débit) s'appliquent ; le reste de la section est prévu pour la V2.
+En V1, les magasins et l'ordre de leurs rayons sont modifiables par tous, sans modération ni limite de débit : l'inscription sur invitation limite le risque. Seul CON-01 (sans le rôle d'éditeur) s'applique ; le reste de la section est prévu pour la V2.
 
 - **CON-01.** Trois rôles : utilisateur, éditeur (V2), administrateur. Les administrateurs nomment les éditeurs. Le premier administrateur est désigné par une commande SQL documentée dans le README.
 - **CON-02.** V2. Un magasin non verrouillé se modifie directement par tout utilisateur (modèle wiki). Un magasin verrouillé par un éditeur n'accepte que des suggestions.
@@ -263,7 +263,7 @@ En V1, les magasins et l'ordre de leurs rayons sont modifiables par tous, sans m
 - **CON-05.** V2. Tout utilisateur peut signaler un magasin : doublon, fermé ou informations erronées.
 - **CON-06.** V2. Un éditeur peut fusionner deux magasins. L'ordre des rayons, les rangements, les sessions et les vues sélectionnées sont transférés au magasin conservé ; quand un article a un rangement dans les deux magasins, celui du magasin conservé l'emporte. L'ancien magasin redirige vers le nouveau.
 - **CON-07.** V2. Un éditeur dispose d'une file de modération : suggestions, signalements, magasins créés récemment et suggestions issues de APP-06.
-- **CON-08.** Les modifications directes (magasins et ordre des rayons) sont limitées à 20 par jour et par utilisateur. En V2, un éditeur peut restaurer en masse les révisions d'un auteur.
+- **CON-08.** V2. Les modifications directes (magasins et ordre des rayons) sont limitées à 20 par jour et par utilisateur. En V2, un éditeur peut restaurer en masse les révisions d'un auteur.
 
 ## 12. Collaboration en temps réel
 
@@ -286,7 +286,7 @@ En V1, les magasins et l'ordre de leurs rayons sont modifiables par tous, sans m
 - **OFF-03.** Un indicateur affiche « Hors ligne · n modifications en attente » (« Hors ligne » seul s'il n'y en a aucune). En ligne, si des modifications attendent depuis plus de 3 secondes (serveur injoignable), il affiche « n modifications en attente ». L'indicateur est une pastille placée sous l'en-tête.
 - **OFF-04.** Au rejeu, les règles COL-02 à COL-04 s'appliquent. Un conflit avec la modification d'un autre membre produit l'alerte correspondante. Un retrait (« Plus besoin » ou suppression) fait hors ligne est refusé au rejeu si un autre membre a mis l'article dans le caddie entre-temps, faute de pouvoir demander la confirmation de COL-04 ; un message l'indique : « [article] n'a pas été retiré : [membre] l'a mis dans le caddie ». La même règle s'applique en ligne si l'appareil ne voyait pas encore l'article au caddie. À défaut de nom, le message dit « Cet article » et « un autre membre ».
 - **OFF-05.** Un article créé hors ligne reçoit un identifiant généré sur l'appareil. Si un article de même nom normalisé existe au rejeu, les deux sont fusionnés : l'article existant est conservé ; il passe à « à acheter » s'il était au catalogue et reste dans le caddie s'il y était ; la quantité saisie hors ligne remplace la sienne si elle est renseignée ; le rayon et les rangements de l'article créé hors ligne sont abandonnés. Un nouveau rejeu de la même création ne modifie plus l'article.
-- **OFF-06.** Les rayons, ainsi que l'ordre des rayons et les rangements de la vue sélectionnée et des 5 derniers magasins utilisés, sont disponibles hors ligne. Les coches (APP-01) sont mises en file comme les autres actions.
+- **OFF-06.** Les rayons, ainsi que l'ordre des rayons et les rangements de la vue sélectionnée et des 5 derniers magasins utilisés, sont disponibles hors ligne. Les 5 derniers magasins utilisés sont retenus sur l'appareil. Les coches (APP-01) sont mises en file comme les autres actions.
 - **OFF-07.** Les actions communautaires (créer un magasin, modifier l'ordre des rayons d'un magasin) et les invitations nécessitent le réseau. Elles sont désactivées hors ligne, avec une explication.
 - **OFF-08.** Une session expirée ne bloque pas l'usage local. La reconnexion est demandée sans perte de la file d'attente. En ligne, une session refusée (jeton révoqué) laisse l'usage local et affiche « Session expirée · Se reconnecter » ; la file est rejouée après la reconnexion.
 
@@ -325,7 +325,7 @@ Connexion, inscription avec code, demande d'accès, accueil (listes du compte), 
 
 - **RGPD-01.** Politique de confidentialité et conditions d'utilisation accessibles avant l'inscription et depuis le profil.
 - **RGPD-02.** Données collectées limitées à l'email, au nom affiché et aux données d'usage nécessaires au service. Aucun outil d'analyse tiers, aucune publicité.
-- **RGPD-03.** La géolocalisation n'est demandée qu'à l'ouverture du sélecteur de magasin. Elle n'est ni stockée ni transmise à des tiers.
+- **RGPD-03.** V2. La géolocalisation n'est demandée qu'à l'ouverture du sélecteur de magasin. Elle n'est ni stockée ni transmise à des tiers. En V1, l'application ne l'utilise pas.
 - **RGPD-04.** Les contributions publiques affichent le nom affiché de l'auteur. Les données agrégées de APP-06 ne permettent pas d'identifier un utilisateur.
 - **RGPD-05.** Les historiques de coches sont conservés 12 mois, puis agrégés et supprimés.
 - **RGPD-06.** Les demandes d'accès refusées sont supprimées après 90 jours.
@@ -337,7 +337,7 @@ Connexion, inscription avec code, demande d'accès, accueil (listes du compte), 
 - **Socle** : Vite, React, TypeScript strict, pnpm, TanStack Router.
 - **Interface** : Tailwind v4, shadcn/ui, lucide-react, Sonner, Vaul, Motion, dnd-kit. i18next pour les textes d'interface, centralisés par espace de noms, en français seul.
 - **Données** : Supabase (Postgres, Auth, Realtime), TanStack Query en mode hors ligne d'abord avec cache persisté dans IndexedDB, Zustand persisté pour l'état local, Zod.
-- **Recherche** : moteur maison côté client pour les articles (préfixe par mot, les mots étant séparés par les espaces, apostrophes et traits d'union ; une faute par mot de 4 lettres ou plus), car aucun réglage de Fuse.js ne respecte REC-03 (il cherche dans le milieu des mots et ne borne pas le nombre de fautes). Recherche de magasins côté serveur (pg_trgm et distance géographique).
+- **Recherche** : moteur maison côté client pour les articles (préfixe par mot, les mots étant séparés par les espaces, apostrophes et traits d'union ; une faute par mot de 4 lettres ou plus), car aucun réglage de Fuse.js ne respecte REC-03 (il cherche dans le milieu des mots et ne borne pas le nombre de fautes). Recherche de magasins côté client, avec le même moteur (MAG-03) ; en V2, avec l'import OpenStreetMap, côté serveur (pg_trgm et distance géographique).
 - **PWA** : vite-plugin-pwa (Workbox).
 - **Anti-abus** : Captcha Cloudflare Turnstile sur la demande d'accès et, en V2, sur l'inscription.
 
@@ -348,7 +348,7 @@ Connexion, inscription avec code, demande d'accès, accueil (listes du compte), 
 - **lists, list_members, invitations** : listes, appartenances (date d'arrivée, créateur) et invitations à une liste.
 - **rayons** : liste fixe (nom, ordre de référence), modifiée par les administrateurs. « Autre » est marqué comme non supprimable.
 - **articles** : id (UUID généré par le client), list_id, nom, nom normalisé, rayon (obligatoire), statut, status_by (auteur du dernier changement de statut, pour COL-04), quantité, updated_by, updated_at, deleted_at.
-- **stores** : nom, adresse, ville, coordonnées, osm_id, statut, créé par ; en V2, verrouillage et merged_into.
+- **stores** : id (UUID généré par le client), nom, nom normalisé, créé par ; en V2, adresse, ville, coordonnées, osm_id, statut, verrouillage et merged_into.
 - **article_store_rayons** : rangements : list_id, article_id, store_id, rayon_id, updated_by.
 - **store_rayon_orders** : ordre des rayons d'un magasin (store_id, rayon_id, position, updated_by). Absent : ordre de référence.
 - **list_views** : vue sélectionnée par compte et par liste (user_id, list_id, store_id, vide pour « Défaut »).
@@ -357,21 +357,21 @@ Connexion, inscription avec code, demande d'accès, accueil (listes du compte), 
 - **suggestions, reports** : V2. Suggestions et signalements, avec statut, motif et éditeur responsable.
 - **TEC-01.** Index unique sur (list_id, nom normalisé) parmi les articles non supprimés.
 - **TEC-02.** Le tri d'une liste par rayon suit l'ordre du magasin sélectionné, à défaut l'ordre de référence. Chaque article va dans son rangement dans ce magasin, à défaut dans son rayon (RNG-01). Dans un rayon, l'ordre est alphabétique. Un rayon absent de l'ordre du magasin (ajouté depuis, ADM-03) se place juste après son prédécesseur dans l'ordre de référence.
-- **TEC-03.** Fonctions SQL atomiques : set_status (idempotente), terminer_session, creer_article, ranger_article (ART-07), ordonner_rayons (ordre d'un magasin), accepter_invitation, controle_inscription (hook « Before User Created »), supprimer_rayon (ADM-03) ; en V2, fusionner_magasins et restaurer_revision.
+- **TEC-03.** Fonctions SQL atomiques : set_status (idempotente), terminer_session, creer_article, creer_magasin (MAG-04, MAG-05), ranger_article (ART-07), ordonner_rayons (ordre d'un magasin), accepter_invitation, controle_inscription (hook « Before User Created »), supprimer_rayon (ADM-03) ; en V2, fusionner_magasins et restaurer_revision.
 - **TEC-04.** Migrations versionnées dans le dépôt. Types TypeScript générés depuis le schéma.
 
 ### 16.3 Sécurité
 
-- **SEC-01.** RLS activée sur toutes les tables. Les données d'une liste ne sont accessibles qu'à ses membres. La vue sélectionnée n'est accessible qu'à son compte. Les magasins et leur ordre des rayons sont lisibles et modifiables par tous les comptes (CON-08). Les rayons sont lisibles par tous les comptes et modifiables par les administrateurs seulement. Le temps réel passe par des canaux privés, réservés aux membres. Limite acceptée : un ancien membre, avec un client modifié, peut encore recevoir les modifications de la liste jusqu'à l'expiration de son jeton (1 heure au plus) après son retrait.
+- **SEC-01.** RLS activée sur toutes les tables. Les données d'une liste ne sont accessibles qu'à ses membres. La vue sélectionnée n'est accessible qu'à son compte. Les magasins et leur ordre des rayons sont lisibles par tous les comptes et modifiables par tous, au travers des fonctions de TEC-03. Les rayons sont lisibles par tous les comptes et modifiables par les administrateurs seulement. Le temps réel passe par des canaux privés, réservés aux membres. Limite acceptée : un ancien membre, avec un client modifié, peut encore recevoir les modifications de la liste jusqu'à l'expiration de son jeton (1 heure au plus) après son retrait.
 - **SEC-02.** Les opérations d'administration et de modération passent par des fonctions SQL qui vérifient le rôle. Aucune clé de service côté client.
-- **SEC-03.** Limitation de débit sur les invitations (20 par jour et par liste), les demandes d'accès, les créations de magasins et les suggestions.
+- **SEC-03.** Limitation de débit sur les invitations (20 par jour et par liste) et les demandes d'accès ; en V2, sur les créations de magasins et les suggestions (CON-08).
 - **SEC-04.** Le hook d'inscription vérifie le mode, le plafond et la validité du code dans une même transaction, pour qu'un code ne soit jamais utilisé deux fois.
 
 ### 16.4 PWA
 
 - **PWA-01.** Manifest en mode standalone, icônes, couleur de thème. Installation depuis le navigateur, sans store.
 - **PWA-02.** Mise en cache complète de l'application. Une nouvelle version déclenche une bannière « Nouvelle version disponible », jamais une mise à jour silencieuse.
-- **PWA-03.** Wake Lock, Vibration et géolocalisation sont utilisés uniquement s'ils sont pris en charge et autorisés. Leur absence ne dégrade aucune fonctionnalité essentielle.
+- **PWA-03.** Wake Lock, Vibration et, en V2, géolocalisation sont utilisés uniquement s'ils sont pris en charge et autorisés. Leur absence ne dégrade aucune fonctionnalité essentielle.
 - **PWA-04.** Un lien d'invitation ouvert depuis l'application installée y reste, sans basculer vers le navigateur quand la plateforme le permet.
 
 ### 16.5 Hébergement et exploitation
@@ -379,7 +379,7 @@ Connexion, inscription avec code, demande d'accès, accueil (listes du compte), 
 - **OPS-01.** Front statique sur Vercel, avec réécriture vers index.html et prévisualisation par branche.
 - **OPS-02.** Supabase en plan gratuit au départ. Une tâche GitHub Actions quotidienne interroge la base pour éviter la mise en pause après une semaine d'inactivité. Passage au plan payant si l'usage dépasse les quotas.
 - **OPS-03.** Sauvegarde hebdomadaire par pg_dump via GitHub Actions, stockée en privé. Restauration testée avant la mise en service.
-- **OPS-04.** Import et mise à jour mensuelle des magasins OpenStreetMap par une tâche planifiée. Les magasins modifiés par la communauté ne sont pas écrasés.
+- **OPS-04.** V2. Import et mise à jour mensuelle des magasins OpenStreetMap par une tâche planifiée. Les magasins modifiés par la communauté ne sont pas écrasés.
 - **OPS-05.** Développement en local avec Supabase CLI. Le projet distant est réservé à la production.
 - **OPS-06.** Envoi des emails (connexion, invitations, demandes d'accès, alertes) par un service SMTP externe en offre gratuite, le service intégré de Supabase étant trop limité en volume.
 
