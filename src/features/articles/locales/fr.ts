@@ -9,7 +9,6 @@ export const articles = {
   toolbar: {
     view: "Vue : {{name}}",
     defaultView: "Défaut",
-    display: "Affichage",
     byRayon: "Par rayon",
     alphabetical: "A → Z",
   },

@@ -94,6 +94,15 @@ test("ajouter des articles par la recherche, les retirer puis annuler", async ({
   await expect(page.getByRole("button", { name: /^Créer/ })).toHaveCount(0);
   await search.fill("");
 
+  // PRE-10 : un tap n'importe où sur la bascule change d'affichage (ici, toujours côté gauche).
+  const byRayon = page.getByRole("switch", { name: t("articles:toolbar.byRayon") });
+  await expect(byRayon).toBeChecked();
+  await byRayon.click({ position: { x: 10, y: 10 } });
+  await expect(byRayon).not.toBeChecked();
+  await expect(list.getByRole("heading", { level: 3 })).toHaveCount(0);
+  await byRayon.click({ position: { x: 10, y: 10 } });
+  await expect(byRayon).toBeChecked();
+
   // LST-02 : nombre d'articles à acheter sur l'accueil.
   await page.getByRole("link", { name: t("lists:header.back") }).click();
   await expect(page.getByRole("main").getByRole("link", { name: /Maison/ })).toContainText("2");
