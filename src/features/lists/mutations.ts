@@ -9,8 +9,10 @@ import {
   type ListSummary,
 } from "@/features/lists/schemas";
 import { articleKeys } from "@/features/articles/queries";
+import type { Article } from "@/features/articles/schemas";
 import { listKeys, sortLists } from "@/features/lists/queries";
 import { i18n } from "@/lib/i18n";
+import { call, callAs } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
 import { SYNC_SCOPE } from "@/lib/sync-scope";
 
@@ -34,8 +36,10 @@ export type CreateListVariables = {
   name: string;
   emoji: string;
   displayName: string | null;
-  // LST-04 : liste dont les articles sont copiés.
+  // LST-04 : liste dont les articles sont copiés, et id de chaque copie, généré par
+  // l'appareil pour l'afficher tout de suite, même hors ligne (OFF-02).
   sourceListId?: string;
+  copies?: { sourceId: string; id: string }[];
 };
 export type UpdateListVariables = { userId: string; listId: string; name: string; emoji: string };
 export type LeaveListVariables = { userId: string; listId: string };
@@ -85,31 +89,54 @@ function invalidate(client: QueryClient, userId: string | null, listId: string) 
   ]);
 }
 
-// Lève l'erreur Postgrest pour que TanStack Query la traite (rollback, retry).
-async function call<T>(request: PromiseLike<{ data: T; error: unknown }>): Promise<T> {
-  const { data, error } = await request;
-  if (error) throw error;
-  return data;
-}
-
 // OFF-02 : enregistré avant la restauration du cache, pour rejouer les mutations en attente.
 export function registerListMutations(client: QueryClient): void {
   // LST-01. L'id vient de l'appareil : la liste existe à l'écran avant le serveur.
   client.setMutationDefaults(listMutationKeys.create, {
     scope: SYNC_SCOPE,
-    mutationFn: ({ listId, name, emoji, sourceListId }: CreateListVariables) =>
-      call(
+    mutationFn: ({ userId, listId, name, emoji, sourceListId, copies = [] }: CreateListVariables) =>
+      callAs(
+        userId,
         sourceListId
           ? supabase.rpc("copier_liste", {
               p_source_id: sourceListId,
               p_id: listId,
               p_name: name,
               p_emoji: emoji,
+              p_source_article_ids: copies.map((c) => c.sourceId),
+              p_article_ids: copies.map((c) => c.id),
             })
           : supabase.rpc("creer_liste", { p_id: listId, p_name: name, p_emoji: emoji }),
       ),
-    onMutate: async ({ userId, listId, name, emoji, displayName }: CreateListVariables) => {
+    onMutate: async (variables: CreateListVariables) => {
+      const { userId, listId, name, emoji, displayName, copies = [] } = variables;
       const snapshot = await takeSnapshot(client, userId, listId);
+      // LST-04 : copies au catalogue, sans quantité.
+      if (copies.length > 0) {
+        const now = new Date().toISOString();
+        client.setQueryData(articleKeys.all(userId), (old: Article[] | undefined) => {
+          if (!old) return old;
+          const sources = new Map(old.map((a) => [a.id, a]));
+          const copied = copies.flatMap(({ sourceId, id }) => {
+            const source = sources.get(sourceId);
+            return source
+              ? [
+                  {
+                    ...source,
+                    id,
+                    listId,
+                    status: "catalogue" as const,
+                    statusBy: null,
+                    quantity: null,
+                    updatedBy: userId,
+                    updatedAt: now,
+                  },
+                ]
+              : [];
+          });
+          return [...old, ...copied];
+        });
+      }
       // NAV-06 : une liste créée est la plus récemment active.
       const summary = { id: listId, name, emoji, activity_at: new Date().toISOString() };
       client.setQueryData(listKeys.all(userId), (old: ListSummary[] | undefined) =>
@@ -123,7 +150,6 @@ export function registerListMutations(client: QueryClient): void {
     },
     onError: (error, { userId, listId }: CreateListVariables, context) =>
       restoreSnapshot(client, userId, listId, context, error),
-    // LST-04 : les articles copiés sont créés par le serveur.
     onSettled: (_data, _error, { userId, listId, sourceListId }: CreateListVariables) =>
       Promise.all([
         invalidate(client, userId, listId),
@@ -134,8 +160,8 @@ export function registerListMutations(client: QueryClient): void {
   // LST-05 : nom et emoji.
   client.setMutationDefaults(listMutationKeys.update, {
     scope: SYNC_SCOPE,
-    mutationFn: ({ listId, name, emoji }: UpdateListVariables) =>
-      call(supabase.from("lists").update({ name, emoji }).eq("id", listId)),
+    mutationFn: ({ userId, listId, name, emoji }: UpdateListVariables) =>
+      callAs(userId, supabase.from("lists").update({ name, emoji }).eq("id", listId)),
     onMutate: async ({ userId, listId, name, emoji }: UpdateListVariables) => {
       const snapshot = await takeSnapshot(client, userId, listId);
       // NAV-06 : renommer la liste la fait remonter.
@@ -162,8 +188,8 @@ export function registerListMutations(client: QueryClient): void {
   // LST-07, LST-08 : le serveur transfère le rôle ou supprime la liste.
   client.setMutationDefaults(listMutationKeys.leave, {
     scope: SYNC_SCOPE,
-    mutationFn: ({ listId }: LeaveListVariables) =>
-      call(supabase.rpc("quitter_liste", { p_list_id: listId })),
+    mutationFn: ({ userId, listId }: LeaveListVariables) =>
+      callAs(userId, supabase.rpc("quitter_liste", { p_list_id: listId })),
     onMutate: async ({ userId, listId }: LeaveListVariables) => {
       const snapshot = await takeSnapshot(client, userId, listId);
       client.setQueryData(listKeys.all(userId), (old: ListSummary[] | undefined) =>
@@ -198,8 +224,8 @@ export function registerListMutations(client: QueryClient): void {
   // LST-06
   client.setMutationDefaults(listMutationKeys.delete, {
     scope: SYNC_SCOPE,
-    mutationFn: ({ listId, name }: DeleteListVariables) =>
-      call(supabase.rpc("supprimer_liste", { p_list_id: listId, p_name: name })),
+    mutationFn: ({ userId, listId, name }: DeleteListVariables) =>
+      callAs(userId, supabase.rpc("supprimer_liste", { p_list_id: listId, p_name: name })),
     onMutate: async ({ userId, listId }: DeleteListVariables) => {
       const snapshot = await takeSnapshot(client, userId, listId);
       client.setQueryData(listKeys.all(userId), (old: ListSummary[] | undefined) =>

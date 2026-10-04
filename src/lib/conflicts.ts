@@ -18,13 +18,14 @@ export type RemoteAlert = {
   by: string;
 };
 
-type Stamped = Pick<ArticleState, "updatedAt" | "updatedBy">;
+// updatedBy vide : compte supprimé depuis (on delete set null).
+type Stamped = { updatedAt: string; updatedBy: string | null };
 
 /** Last write wins; equal timestamps are settled by author id (COL-02). */
 export function resolveConcurrent<T extends Stamped>(a: T, b: T): T {
   const diff = Date.parse(a.updatedAt) - Date.parse(b.updatedAt);
   if (diff !== 0) return diff > 0 ? a : b;
-  return b.updatedBy > a.updatedBy ? b : a;
+  return (b.updatedBy ?? "") > (a.updatedBy ?? "") ? b : a;
 }
 
 function isWanted(article: ArticleState | null): boolean {

@@ -1,6 +1,7 @@
 import { isNetworkError } from "@/lib/network";
 
 export type ArticleErrorKey =
+  | "articles:errors.alreadyInCart"
   | "articles:errors.duplicateName"
   | "articles:errors.notFound"
   | "articles:errors.notMember"
@@ -10,6 +11,8 @@ export type ArticleErrorKey =
 // Messages levés par les fonctions SQL et contraintes de la migration « articles ».
 const sqlErrors: Record<string, ArticleErrorKey> = {
   article_introuvable: "articles:errors.notFound",
+  // OFF-04 : retrait rejoué sur un article mis au caddie par un autre membre.
+  deja_au_caddie: "articles:errors.alreadyInCart",
   non_membre: "articles:errors.notMember",
 };
 

@@ -32,7 +32,9 @@ function invitationReturnPath(invitation: Invitation): string {
 export const Route = createFileRoute("/connexion")({
   validateSearch: searchSchema,
   beforeLoad: async () => {
-    if (await getAuthState()) throw redirect({ to: "/" });
+    // OFF-08 : une session perdue se reconnecte ici, sans quitter ses données.
+    const auth = await getAuthState();
+    if (auth && !auth.sessionLost) throw redirect({ to: "/" });
   },
   component: LoginPage,
 });

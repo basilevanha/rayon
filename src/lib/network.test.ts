@@ -35,6 +35,7 @@ describe("isAuthError (OFF-08)", () => {
     { message: "No suitable key or wrong key type", code: "PGRST301" },
     { message: "Authentication required", code: "PGRST302" },
     { message: "invalid JWT: unable to parse or verify signature", code: "" },
+    { message: "session_perdue", code: "SESSION_LOST" },
   ])("detects a refused session: %o", (error) => {
     expect(isAuthError(error)).toBe(true);
   });

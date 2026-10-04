@@ -14,6 +14,9 @@ import { useLastListStore } from "@/features/lists/last-list-store";
 import { ListDrawers } from "@/features/lists/list-drawers";
 import { useAcceptPendingInvitations } from "@/features/lists/mutations";
 import { useOnline } from "@/hooks/use-online";
+import { useRealtimeSync } from "@/features/sync/realtime";
+import { SessionLostBanner } from "@/features/sync/session-lost-banner";
+import { SyncIndicator } from "@/features/sync/sync-indicator";
 
 // Écrans réservés aux comptes connectés.
 export const Route = createFileRoute("/_app")({
@@ -31,7 +34,10 @@ function AppLayout() {
   const { data: profile, error: profileError } = useQuery(profileQueryOptions(auth.userId));
   const settingDisplayName = useIsSettingDisplayName();
   useSignOutIfAccountMissing(profileError);
-  useJoinPendingLists(auth.userId);
+  // INV-04 : la liste n'est rejointe qu'une fois le nom choisi, pour que les membres
+  // voient « [nom] a rejoint « [liste] » ».
+  useJoinPendingLists(auth.userId, Boolean(profile?.display_name) && !settingDisplayName);
+  useRealtimeSync(auth.userId);
 
   // CPT-04 : le nom affiché est obligatoire.
   if (profile && profile.display_name === null && !settingDisplayName)
@@ -39,7 +45,9 @@ function AppLayout() {
 
   return (
     <>
+      {auth.sessionLost && <SessionLostBanner />}
       <Outlet />
+      <SyncIndicator />
       <ListDrawers userId={auth.userId} />
       <AccountDrawers auth={auth} />
     </>
@@ -48,20 +56,20 @@ function AppLayout() {
 
 // INV-02 : à la connexion, le compte rejoint les listes dont il a utilisé le code
 // pour s'inscrire ; la dernière rejointe s'ouvre (section 4.2).
-function useJoinPendingLists(userId: string) {
+function useJoinPendingLists(userId: string, named: boolean) {
   const online = useOnline();
   const { mutate } = useAcceptPendingInvitations();
   const setLastListId = useLastListStore((state) => state.setLastListId);
 
   useEffect(() => {
-    if (!online) return;
+    if (!online || !named) return;
     mutate(undefined, {
       onSuccess: (listIds) => {
         const joined = listIds.at(-1);
         if (joined) setLastListId(joined);
       },
     });
-  }, [userId, online, mutate, setLastListId]);
+  }, [userId, online, named, mutate, setLastListId]);
 }
 
 // CPT-07 : une session dont le compte n'existe plus est fermée, et l'appareil vidé.

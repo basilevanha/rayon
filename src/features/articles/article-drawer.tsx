@@ -103,7 +103,13 @@ function ArticleForm(props: ArticleDrawerProps & { article: Article }) {
 
   // ART-06 : un article du catalogue passe à acheter, comme depuis la recherche (REC-06).
   function addToList() {
-    setStatus.mutate({ userId, listId, articleId: article.id, status: "a_acheter" });
+    setStatus.mutate({
+      userId,
+      listId,
+      articleId: article.id,
+      status: "a_acheter",
+      seenStatus: article.status,
+    });
     onClose();
   }
 

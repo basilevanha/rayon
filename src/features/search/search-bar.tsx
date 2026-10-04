@@ -106,7 +106,13 @@ export function SearchBar(props: SearchBarProps) {
   // REC-06 : un article du catalogue passe à acheter ; un article déjà voulu est montré.
   function select(article: Article) {
     if (article.status === "catalogue") {
-      setStatus.mutate({ userId, listId, articleId: article.id, status: "a_acheter" });
+      setStatus.mutate({
+        userId,
+        listId,
+        articleId: article.id,
+        status: "a_acheter",
+        seenStatus: article.status,
+      });
       done();
     } else {
       onQueryChange("");
