@@ -88,6 +88,29 @@ export type Database = {
         };
         Relationships: [];
       };
+      article_aliases: {
+        Row: {
+          article_id: string;
+          id: string;
+        };
+        Insert: {
+          article_id: string;
+          id: string;
+        };
+        Update: {
+          article_id?: string;
+          id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "article_aliases_article_id_fkey";
+            columns: ["article_id"];
+            isOneToOne: false;
+            referencedRelation: "articles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       articles: {
         Row: {
           created_at: string;
@@ -363,7 +386,14 @@ export type Database = {
       accepter_invitations_en_attente: { Args: Record<PropertyKey, never>; Returns: string[] };
       controle_inscription: { Args: { event: Json }; Returns: Json };
       copier_liste: {
-        Args: { p_emoji: string; p_id: string; p_name: string; p_source_id: string };
+        Args: {
+          p_article_ids?: string[];
+          p_emoji: string;
+          p_id: string;
+          p_name: string;
+          p_source_article_ids?: string[];
+          p_source_id: string;
+        };
         Returns: undefined;
       };
       creer_article: {
@@ -400,11 +430,23 @@ export type Database = {
       };
       normaliser_nom: { Args: { p_name: string }; Returns: string };
       partage_une_liste: { Args: { p_user_id: string }; Returns: boolean };
+      peut_ecouter: { Args: { p_topic: string }; Returns: boolean };
       quitter_liste: { Args: { p_list_id: string }; Returns: undefined };
       retirer_membre: { Args: { p_list_id: string; p_user_id: string }; Returns: undefined };
       revoquer_invitation: { Args: { p_id: string }; Returns: undefined };
-      set_status: { Args: { p_article_id: string; p_status: string }; Returns: undefined };
+      set_status: {
+        Args: { p_article_id: string; p_seen_status?: string; p_status: string };
+        Returns: undefined;
+      };
+      supprimer_article: {
+        Args: { p_article_id: string; p_seen_status?: string };
+        Returns: undefined;
+      };
       supprimer_liste: { Args: { p_list_id: string; p_name: string }; Returns: undefined };
+      verifier_retrait: {
+        Args: { p_seen_status: string; v_article: Database["public"]["Tables"]["articles"]["Row"] };
+        Returns: undefined;
+      };
     };
     Enums: {
       [_ in never]: never;

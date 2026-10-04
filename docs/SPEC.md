@@ -94,7 +94,7 @@ V2 : inscription ouverte, quand l'infrastructure et la modération sont prêtes 
 - **INV-01.** Tout membre peut générer une invitation, sous forme de lien et de code à 6 caractères. Elle est valable 7 jours, à usage unique et révocable. Les codes d'invitation à une liste et à l'application sont uniques ensemble. Les codes générés n'utilisent pas de caractères ambigus (0, O, 1, I) ; un code d'invitation à l'application choisi par un administrateur est libre.
 - **INV-02.** Le lien ouvre l'écran de connexion, ou l'inscription si la personne n'a pas de compte. Une invitation à une liste vaut autorisation d'inscription (ISC-02), dans la limite du plafond (ISC-06). Le compte est ajouté à la liste après confirmation de son adresse email, à sa première connexion.
 - **INV-03.** Une invitation expirée, révoquée ou déjà utilisée affiche un message clair et propose de demander un nouveau lien.
-- **INV-04.** Les membres de la liste voient « [membre] a rejoint la liste » à son arrivée.
+- **INV-04.** Les membres de la liste voient « [membre] a rejoint « [liste] » » à son arrivée.
 
 ## 4. Navigation et parcours utilisateur
 
@@ -283,9 +283,9 @@ En V1, les magasins et l'ordre de leurs rayons sont modifiables par tous, sans m
 
 - **OFF-01.** Une liste s'ouvre et reste entièrement utilisable sans réseau, à partir du dernier état synchronisé.
 - **OFF-02.** Chaque action s'applique immédiatement à l'écran. Elle est mise en file d'attente, puis rejouée dans l'ordre au retour du réseau, même après fermeture de l'application.
-- **OFF-03.** Un indicateur affiche « Hors ligne · n modifications en attente ».
-- **OFF-04.** Au rejeu, les règles COL-02 à COL-04 s'appliquent. Un conflit avec la modification d'un autre membre produit l'alerte correspondante.
-- **OFF-05.** Un article créé hors ligne reçoit un identifiant généré sur l'appareil. Si un article de même nom normalisé existe au rejeu, les deux sont fusionnés : l'article existant est conservé ; il passe à « à acheter » s'il était au catalogue et reste dans le caddie s'il y était ; la quantité saisie hors ligne remplace la sienne si elle est renseignée ; le rayon et les rangements de l'article créé hors ligne sont abandonnés.
+- **OFF-03.** Un indicateur affiche « Hors ligne · n modifications en attente » (« Hors ligne » seul s'il n'y en a aucune). En ligne, si des modifications attendent depuis plus de 3 secondes (serveur injoignable), il affiche « n modifications en attente ».
+- **OFF-04.** Au rejeu, les règles COL-02 à COL-04 s'appliquent. Un conflit avec la modification d'un autre membre produit l'alerte correspondante. Un retrait (« Plus besoin » ou suppression) fait hors ligne est refusé au rejeu si un autre membre a mis l'article dans le caddie entre-temps, faute de pouvoir demander la confirmation de COL-04 ; un message l'indique : « [article] n'a pas été retiré : [membre] l'a mis dans le caddie ».
+- **OFF-05.** Un article créé hors ligne reçoit un identifiant généré sur l'appareil. Si un article de même nom normalisé existe au rejeu, les deux sont fusionnés : l'article existant est conservé ; il passe à « à acheter » s'il était au catalogue et reste dans le caddie s'il y était ; la quantité saisie hors ligne remplace la sienne si elle est renseignée ; le rayon et les rangements de l'article créé hors ligne sont abandonnés. Un nouveau rejeu de la même création ne modifie plus l'article.
 - **OFF-06.** Les rayons, ainsi que l'ordre des rayons et les rangements de la vue sélectionnée et des 5 derniers magasins utilisés, sont disponibles hors ligne. Les coches (APP-01) sont mises en file comme les autres actions.
 - **OFF-07.** Les actions communautaires (créer un magasin, modifier l'ordre des rayons d'un magasin) et les invitations nécessitent le réseau. Elles sont désactivées hors ligne, avec une explication.
 - **OFF-08.** Une session expirée ne bloque pas l'usage local. La reconnexion est demandée sans perte de la file d'attente.
