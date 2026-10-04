@@ -7,7 +7,7 @@ PWA de listes de courses partagées : tri par parcours en magasin, mode courses 
 ## Stack
 
 - Vite, React, TypeScript strict, pnpm, TanStack Router (routes fichiers, plugin Vite)
-- Tailwind v4, shadcn/ui (Base UI, preset Nova), lucide-react, Sonner, Vaul, Motion, dnd-kit
+- Tailwind v4, shadcn/ui (Base UI, preset Nova), lucide-react, Sonner, Vaul, Motion, dnd-kit, i18next
 - Supabase (Postgres, Auth, Realtime), TanStack Query (offline-first, cache persisté IndexedDB), Zustand, Zod
 - Fuse.js (recherche), vite-plugin-pwa
 - Oxlint (lint), Oxfmt (formatage), Vitest, Testing Library, Playwright
@@ -48,6 +48,7 @@ supabase/
   migrations/        # seule façon de modifier le schéma
   tests/             # pgTAP
 docs/SPEC.md
+docs/ROADMAP.md     # état d'avancement par identifiant
 ```
 
 ## Règles
@@ -82,8 +83,9 @@ docs/SPEC.md
 
 - Mobile d'abord. Cibles 48 px en mode courses, 44 px ailleurs (UI-02).
 - Les animations ne bloquent jamais un tap et respectent `prefers-reduced-motion` (UI-07, UI-08).
+- **Aucun texte d'interface en dur** : tout passe par `t()` (react-i18next). Un texte utilisé par plusieurs fonctionnalités va dans `src/lib/i18n/fr/common.ts` ; sinon dans `src/features/<domaine>/locales/fr.ts`. Un texte de `common` qui n'est plus partagé retourne dans sa fonctionnalité. Variables `{{nom}}`, pluriels `_one` / `_other`. Les tests vérifient l'affichage avec `t()`, jamais avec la chaîne littérale.
 - Composants shadcn en priorité avant d'en créer un nouveau (`pnpm dlx shadcn@latest add <composant>`). Ils reposent sur **Base UI**, pas sur Radix : n'importe jamais `@radix-ui/*`.
 
 ## Fin de tâche
 
-Avant de déclarer une tâche terminée : `pnpm typecheck && pnpm lint && pnpm test` passent, et le résumé liste les identifiants couverts et ceux qui restent ouverts.
+Avant de déclarer une tâche terminée : `pnpm typecheck && pnpm lint && pnpm test` passent, et le résumé liste les identifiants couverts et ceux qui restent ouverts. Mets à jour `docs/ROADMAP.md` : état de chaque identifiant touché, synthèse chiffrée, tableau des lots et points ouverts.

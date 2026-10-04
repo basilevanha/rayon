@@ -3,6 +3,7 @@ import type { PersistedClient } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { del, get, set } from "idb-keyval";
 import { z } from "zod";
+import { shouldRetryMutation } from "@/lib/network";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -37,12 +38,9 @@ export function deserializeCache(raw: string): PersistedClient {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: { networkMode: "offlineFirst", gcTime: WEEK_MS, retry: 2 },
-    mutations: { networkMode: "offlineFirst", gcTime: WEEK_MS },
+    mutations: { networkMode: "offlineFirst", gcTime: WEEK_MS, retry: shouldRetryMutation },
   },
 });
-
-// Chaque feature y branche ses `setMutationDefaults` (OFF-02), avant la restauration du cache.
-export function registerMutationDefaults(_client: QueryClient): void {}
 
 export const persister = createAsyncStoragePersister({
   storage: {

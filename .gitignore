@@ -26,3 +26,13 @@ dist-ssr
 # Supabase CLI
 supabase/.temp/
 supabase/.branches/
+
+# Playwright MCP
+.playwright-mcp/
+
+# TanStack Router (fichiers temporaires)
+.tanstack/
+
+# Playwright
+test-results/
+playwright-report/

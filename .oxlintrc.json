@@ -7,5 +7,6 @@
   "rules": {},
   "env": {
     "builtin": true
-  }
+  },
+  "ignorePatterns": ["src/components/ui/**", "src/routeTree.gen.ts", "src/lib/database.types.ts"]
 }

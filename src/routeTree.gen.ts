@@ -9,13 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as BienvenueRouteImport } from './routes/bienvenue'
 import { Route as ConnexionRouteImport } from './routes/connexion'
-import { Route as ListesListIdRouteImport } from './routes/listes.$listId'
+import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as InvitationCodeRouteImport } from './routes/invitation.$code'
+import { Route as RejoindreCodeRouteImport } from './routes/rejoindre.$code'
+import { Route as AppListesIndexRouteImport } from './routes/_app/listes.index'
+import { Route as AppListesListIdRouteImport } from './routes/_app/listes.$listId'
+import { Route as AppListesListIdReglagesRouteImport } from './routes/_app/listes.$listId.reglages'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BienvenueRoute = BienvenueRouteImport.update({
+  id: '/bienvenue',
+  path: '/bienvenue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConnexionRoute = ConnexionRouteImport.update({
@@ -23,49 +33,125 @@ const ConnexionRoute = ConnexionRouteImport.update({
   path: '/connexion',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ListesListIdRoute = ListesListIdRouteImport.update({
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const InvitationCodeRoute = InvitationCodeRouteImport.update({
+  id: '/invitation/$code',
+  path: '/invitation/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RejoindreCodeRoute = RejoindreCodeRouteImport.update({
+  id: '/rejoindre/$code',
+  path: '/rejoindre/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppListesIndexRoute = AppListesIndexRouteImport.update({
+  id: '/listes/',
+  path: '/listes/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppListesListIdRoute = AppListesListIdRouteImport.update({
   id: '/listes/$listId',
   path: '/listes/$listId',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppListesListIdReglagesRoute = AppListesListIdReglagesRouteImport.update({
+  id: '/reglages',
+  path: '/reglages',
+  getParentRoute: () => AppListesListIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
+  '/bienvenue': typeof BienvenueRoute
   '/connexion': typeof ConnexionRoute
-  '/listes/$listId': typeof ListesListIdRoute
+  '/invitation/$code': typeof InvitationCodeRoute
+  '/rejoindre/$code': typeof RejoindreCodeRoute
+  '/listes/$listId': typeof AppListesListIdRouteWithChildren
+  '/listes/': typeof AppListesIndexRoute
+  '/listes/$listId/reglages': typeof AppListesListIdReglagesRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/bienvenue': typeof BienvenueRoute
   '/connexion': typeof ConnexionRoute
-  '/listes/$listId': typeof ListesListIdRoute
+  '/invitation/$code': typeof InvitationCodeRoute
+  '/rejoindre/$code': typeof RejoindreCodeRoute
+  '/': typeof AppIndexRoute
+  '/listes/$listId': typeof AppListesListIdRouteWithChildren
+  '/listes': typeof AppListesIndexRoute
+  '/listes/$listId/reglages': typeof AppListesListIdReglagesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/bienvenue': typeof BienvenueRoute
   '/connexion': typeof ConnexionRoute
-  '/listes/$listId': typeof ListesListIdRoute
+  '/invitation/$code': typeof InvitationCodeRoute
+  '/rejoindre/$code': typeof RejoindreCodeRoute
+  '/_app/': typeof AppIndexRoute
+  '/_app/listes/$listId': typeof AppListesListIdRouteWithChildren
+  '/_app/listes/': typeof AppListesIndexRoute
+  '/_app/listes/$listId/reglages': typeof AppListesListIdReglagesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/connexion' | '/listes/$listId'
+  fullPaths:
+    | '/'
+    | '/bienvenue'
+    | '/connexion'
+    | '/invitation/$code'
+    | '/rejoindre/$code'
+    | '/listes/$listId'
+    | '/listes/'
+    | '/listes/$listId/reglages'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/connexion' | '/listes/$listId'
-  id: '__root__' | '/' | '/connexion' | '/listes/$listId'
+  to:
+    | '/bienvenue'
+    | '/connexion'
+    | '/invitation/$code'
+    | '/rejoindre/$code'
+    | '/'
+    | '/listes/$listId'
+    | '/listes'
+    | '/listes/$listId/reglages'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/bienvenue'
+    | '/connexion'
+    | '/invitation/$code'
+    | '/rejoindre/$code'
+    | '/_app/'
+    | '/_app/listes/$listId'
+    | '/_app/listes/'
+    | '/_app/listes/$listId/reglages'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  BienvenueRoute: typeof BienvenueRoute
   ConnexionRoute: typeof ConnexionRoute
-  ListesListIdRoute: typeof ListesListIdRoute
+  InvitationCodeRoute: typeof InvitationCodeRoute
+  RejoindreCodeRoute: typeof RejoindreCodeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bienvenue': {
+      id: '/bienvenue'
+      path: '/bienvenue'
+      fullPath: '/bienvenue'
+      preLoaderRoute: typeof BienvenueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/connexion': {
@@ -75,20 +161,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConnexionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/listes/$listId': {
-      id: '/listes/$listId'
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/invitation/$code': {
+      id: '/invitation/$code'
+      path: '/invitation/$code'
+      fullPath: '/invitation/$code'
+      preLoaderRoute: typeof InvitationCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rejoindre/$code': {
+      id: '/rejoindre/$code'
+      path: '/rejoindre/$code'
+      fullPath: '/rejoindre/$code'
+      preLoaderRoute: typeof RejoindreCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/listes/': {
+      id: '/_app/listes/'
+      path: '/listes'
+      fullPath: '/listes/'
+      preLoaderRoute: typeof AppListesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/listes/$listId': {
+      id: '/_app/listes/$listId'
       path: '/listes/$listId'
       fullPath: '/listes/$listId'
-      preLoaderRoute: typeof ListesListIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppListesListIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/listes/$listId/reglages': {
+      id: '/_app/listes/$listId/reglages'
+      path: '/reglages'
+      fullPath: '/listes/$listId/reglages'
+      preLoaderRoute: typeof AppListesListIdReglagesRouteImport
+      parentRoute: typeof AppListesListIdRoute
     }
   }
 }
 
+interface AppListesListIdRouteChildren {
+  AppListesListIdReglagesRoute: typeof AppListesListIdReglagesRoute
+}
+
+const AppListesListIdRouteChildren: AppListesListIdRouteChildren = {
+  AppListesListIdReglagesRoute: AppListesListIdReglagesRoute,
+}
+
+const AppListesListIdRouteWithChildren = AppListesListIdRoute._addFileChildren(
+  AppListesListIdRouteChildren,
+)
+
+interface AppRouteChildren {
+  AppIndexRoute: typeof AppIndexRoute
+  AppListesListIdRoute: typeof AppListesListIdRouteWithChildren
+  AppListesIndexRoute: typeof AppListesIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexRoute: AppIndexRoute,
+  AppListesListIdRoute: AppListesListIdRouteWithChildren,
+  AppListesIndexRoute: AppListesIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  BienvenueRoute: BienvenueRoute,
   ConnexionRoute: ConnexionRoute,
-  ListesListIdRoute: ListesListIdRoute,
+  InvitationCodeRoute: InvitationCodeRoute,
+  RejoindreCodeRoute: RejoindreCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
