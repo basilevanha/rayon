@@ -30,7 +30,7 @@ const DRAWER_EXIT_MS = 500;
 const row =
   "flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-base hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
 const chip =
-  "inline-flex min-h-11 items-center rounded-full border px-4 text-sm hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
+  "inline-flex min-h-11 items-center rounded-full border bg-background px-4 text-sm hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
 
 // REC-01 : barre fixée en haut de l'écran d'une liste. Ses résultats remplacent la liste
 // tant qu'une recherche est saisie.
@@ -200,6 +200,9 @@ export function SearchBar(props: SearchBarProps) {
 
       {name && (
         <section aria-label={t("results")} className="flex flex-col gap-1 px-4 pb-4">
+          {results.length === 0 && (
+            <p className="px-3 py-2 text-muted-foreground">{t("noResult", { name })}</p>
+          )}
           <ul className="flex flex-col gap-1">
             {results.map(({ article }) => (
               <li key={article.id}>
@@ -218,7 +221,8 @@ export function SearchBar(props: SearchBarProps) {
 
           {/* REC-07 : « Créer » en dernière position, sans nom identique dans la liste. */}
           {canCreate && (
-            <div className="mt-1 flex flex-col gap-2 border-t pt-2">
+            // Bloc distinct des résultats : on crée un nouvel article, on ne choisit pas un résultat.
+            <div className="mt-2 rounded-xl border bg-muted/40 p-1">
               {suggested ? (
                 // ART-05 : rayon présélectionné, création en un geste.
                 <button
@@ -237,13 +241,17 @@ export function SearchBar(props: SearchBarProps) {
                 </button>
               ) : (
                 // ART-05 : sinon, les pastilles sous « Créer [texte] » choisissent le rayon.
-                <fieldset className="flex flex-col gap-2">
-                  <legend className="flex w-full items-center gap-3 px-3 pt-1 text-base">
-                    <Plus aria-hidden className="size-4 shrink-0" />
-                    <span className="min-w-0 flex-1 truncate">{t("create", { name })}</span>
-                    <span className="sr-only">{t("chooseRayon", { name })}</span>
-                  </legend>
-                  <div ref={chipsRef} className="flex flex-wrap gap-2 px-3 pb-1">
+                <fieldset className="flex flex-col gap-3 px-3 py-2">
+                  <legend className="sr-only">{t("chooseRayon", { name })}</legend>
+                  <div className="flex flex-col gap-1">
+                    <p className="flex items-center gap-3 text-base font-medium">
+                      <Plus aria-hidden className="size-4 shrink-0" />
+                      <span className="min-w-0 flex-1 truncate">{t("create", { name })}</span>
+                    </p>
+                    {/* ART-05 : le rayon est obligatoire, et ces pastilles sont des rayons. */}
+                    <p className="pl-7 text-sm text-muted-foreground">{t("chooseRayonHint")}</p>
+                  </div>
+                  <div ref={chipsRef} className="flex flex-wrap gap-2 pl-7">
                     {chipIds.map((rayonId) => (
                       <button
                         key={rayonId}

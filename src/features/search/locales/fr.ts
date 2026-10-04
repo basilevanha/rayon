@@ -9,6 +9,8 @@ export const search = {
   },
   create: "Créer « {{name}} »",
   chooseRayon: "Choisir le rayon de « {{name}} »",
+  chooseRayonHint: "Choisissez son rayon pour l'ajouter à la liste :",
+  noResult: "Aucun article « {{name}} » dans la liste.",
   allRayons: "Tous les rayons…",
   rayonsTitle: "Rayon de « {{name}} »",
   rayonsFilter: "Filtrer les rayons",
